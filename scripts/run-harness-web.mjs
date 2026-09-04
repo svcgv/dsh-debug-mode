@@ -40,7 +40,11 @@ function runPnpm(args, cwd, childEnv, allowFailure = false) {
   const command = execPath === undefined ? 'pnpm' : process.execPath
   const commandArgs = execPath === undefined ? args : [execPath, ...args]
   return new Promise((resolvePromise, reject) => {
-    const child = spawn(command, commandArgs, { cwd, env: childEnv, stdio: 'inherit' })
+    const child = spawn(command, commandArgs, {
+      cwd,
+      env: { ...process.env, ...childEnv },
+      stdio: 'inherit',
+    })
     child.once('error', reject)
     child.once('exit', (code) => {
       if (code === 0 || allowFailure) resolvePromise()
