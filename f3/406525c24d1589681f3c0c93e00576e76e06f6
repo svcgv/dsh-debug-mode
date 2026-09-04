@@ -1,0 +1,105 @@
+tsdown.config.ts
+  s_182fd8df93af28::t_88e3f1044dc03e 1-8,10-19,21-26
+  s_182fd8df93af28::t_a662fb126bfe46 9,20
+docs/adr/0002-debug-runtime-model.md
+  s_182fd8df93af28::t_6dca86e5949eb9 1-25
+.lintstagedrc.json
+  s_182fd8df93af28::t_88e3f1044dc03e 1-4
+vitest.platform.config.ts
+  s_182fd8df93af28::t_0536c682eaef72 2
+  s_182fd8df93af28::t_88e3f1044dc03e 1,3-14
+docs/testing-strategy.md
+  s_182fd8df93af28::t_6dca86e5949eb9 1-66
+cordis.patch.yml
+  s_182fd8df93af28::t_88e3f1044dc03e 1-3
+package.json
+  s_182fd8df93af28::t_88e3f1044dc03e 1-70
+docs/implementation-plan.md
+  s_182fd8df93af28::t_6dca86e5949eb9 1-4,6-19,21-23,52-116
+  s_182fd8df93af28::t_f47a2158da1210 5,24-51
+  s_182fd8df93af28::t_bed69b40b76ee8 20
+tests/platform/platform-smoke.spec.ts
+  s_182fd8df93af28::t_88e3f1044dc03e 1-21
+vitest.shared.ts
+  s_182fd8df93af28::t_88e3f1044dc03e 1-12
+.husky/pre-commit
+  s_182fd8df93af28::t_0e186b9196fe63 1-2
+.husky/pre-push
+  s_182fd8df93af28::t_0e186b9196fe63 1-2
+.editorconfig
+  s_182fd8df93af28::t_88e3f1044dc03e 1-12
+.gitattributes
+  s_182fd8df93af28::t_88e3f1044dc03e 1-6
+.github/workflows/quality.yml
+  s_182fd8df93af28::t_0e186b9196fe63 1-39
+src/index.ts
+  s_182fd8df93af28::t_88e3f1044dc03e 1-5
+.oxlintrc.json
+  s_182fd8df93af28::t_88e3f1044dc03e 1-15,17-53
+  s_182fd8df93af28::t_720b5f39e11656 16
+scripts/verify-package.mjs
+  s_182fd8df93af28::t_59de62785e2aef 3
+  s_182fd8df93af28::t_720b5f39e11656 25-27
+  s_182fd8df93af28::t_88e3f1044dc03e 1-2,4-24,28-40
+tsconfig.json
+  s_182fd8df93af28::t_88e3f1044dc03e 1-28
+tests/integration/package-manifest.spec.ts
+  s_182fd8df93af28::t_0536c682eaef72 14-44,48,55
+  s_182fd8df93af28::t_88e3f1044dc03e 1-13,45-47,49-54,57-58
+  s_182fd8df93af28::t_a3e40a99655c88 56
+src/client.ts
+  s_182fd8df93af28::t_88e3f1044dc03e 1-5
+docs/architecture.md
+  s_182fd8df93af28::t_6dca86e5949eb9 1-97
+.prettierignore
+  s_182fd8df93af28::t_88e3f1044dc03e 1-6
+vitest.integration.config.ts
+  s_182fd8df93af28::t_88e3f1044dc03e 1,3-13
+  s_182fd8df93af28::t_0536c682eaef72 2
+.github/workflows/platform.yml
+  s_182fd8df93af28::t_0e186b9196fe63 1-44
+vitest.config.ts
+  s_182fd8df93af28::t_0536c682eaef72 2
+  s_182fd8df93af28::t_88e3f1044dc03e 1,3-29
+docs/adr/0001-standalone-bundle.md
+  s_182fd8df93af28::t_6dca86e5949eb9 1-19
+.gitignore
+  s_182fd8df93af28::t_88e3f1044dc03e 1-11
+docs/coding-standards.md
+  s_182fd8df93af28::t_6dca86e5949eb9 1-70
+scripts/check-docs.mjs
+  s_182fd8df93af28::t_88e3f1044dc03e 1-20,30-31,34-42,44-46,48-49,51,71-76
+  s_182fd8df93af28::t_0536c682eaef72 21-29,32-33,47,50,52-70
+  s_182fd8df93af28::t_720b5f39e11656 43
+tests/unit/scaffold.spec.ts
+  s_182fd8df93af28::t_0536c682eaef72 2-3
+  s_182fd8df93af28::t_88e3f1044dc03e 1,4-12
+.prettierrc.json
+  s_182fd8df93af28::t_88e3f1044dc03e 1-10
+docs/security-and-safety.md
+  s_182fd8df93af28::t_6dca86e5949eb9 1-53
+AGENTS.md
+  s_182fd8df93af28::t_ec27b74913f209 1-56
+CONTRIBUTING.md
+  s_182fd8df93af28::t_f31cddb10394b5 1-72
+README.md
+  s_182fd8df93af28::t_2c14592697d772 1-18
+pnpm-lock.yaml
+  s_182fd8df93af28::t_b4668d04734401 1-1661
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "f3406525c24d1589681f3c0c93e00576e76e06f6",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
