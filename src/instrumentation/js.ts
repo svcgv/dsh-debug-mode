@@ -30,6 +30,8 @@ export interface InstrumentJsOptions {
   readonly runId: string
   /** Project-relative path used inside probe metadata. */
   readonly projectPath: string
+  /** Optional parser extension override for embedded scripts (.ts/.tsx). */
+  readonly parserPath?: string
   readonly startLine: number
   readonly endLine: number
   /** Cap on generated probes per file (safety bound). */
@@ -163,8 +165,9 @@ export function instrumentJavaScript(
 ): InstrumentJsResult {
   const maxProbes = options.maxProbes ?? DEFAULT_MAX_PROBES
   let parsed: ParsedJavaScript
+  const parserPath = options.parserPath ?? options.projectPath
   try {
-    parsed = parseJavaScript(source, options.projectPath)
+    parsed = parseJavaScript(source, parserPath)
   } catch (error) {
     throw new Error(`cannot parse ${options.projectPath}: ${String(error)}`, { cause: error })
   }
@@ -217,8 +220,9 @@ export function addRuntimeImport(
   source: string,
   runtimeRelativePath: string,
   runId: string,
+  force = false,
 ): { code: string; changed: boolean } {
-  if (!/\b(import|export)\b/.test(source)) return { code: source, changed: false }
+  if (!force && !/\b(import|export)\b/.test(source)) return { code: source, changed: false }
   const importLine = `import ${JSON.stringify(runtimeRelativePath)}; // ${RUNTIME_IMPORT_MARKER}:${runId}\n`
   return { code: `${importLine}${source}`, changed: true }
 }
