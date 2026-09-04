@@ -1,0 +1,39 @@
+src/runtime/register.ts
+  s_182fd8df93af28::t_b932c546c458e3 1-15
+tests/unit/runtime/frontend.spec.ts
+  s_182fd8df93af28::t_811bf122557f6c 1-86
+  s_182fd8df93af28::t_5e931267100285 87-90
+src/run/manager.ts
+  s_182fd8df93af28::t_8c78c28226bcbe 58-59
+  s_182fd8df93af28::t_b932c546c458e3 124
+  s_182fd8df93af28::t_3f77c807869392 125
+tests/unit/run/manager.spec.ts
+  s_182fd8df93af28::t_b932c546c458e3 66,87,100,156,163,175,188,204,243,253
+tests/unit/run/registry.spec.ts
+  s_182fd8df93af28::t_b932c546c458e3 4,34,36-37,40-41,44-59
+src/run/registry.ts
+  s_182fd8df93af28::t_8c78c28226bcbe 13-14,16-20,23-25
+src/runtime/frontend.ts
+  s_182fd8df93af28::t_54f67434cf6ff2 11,14,20-24,30,41,68,100,102,106-107,111,113,119,121-122,132-134,164-165,171,185-190,199-208,242,247
+  s_182fd8df93af28::t_b0f86c7a480707 87-90,92,223
+  s_182fd8df93af28::t_70fc2b3645388a 150-151
+  s_182fd8df93af28::t_21ae21080a6d74 69-73,91,103,105,174,183-184,243,249-250
+  s_182fd8df93af28::t_5c500827dad670 1-10,12-13,15-19,25-29,31-40,42-67,74-86,93-99,101,104,108-110,112,114-118,120,123-131,135-149,152-163,166-170,172-173,175-182,191-198,209-222,224-241,244-246,248,251-260
+  s_182fd8df93af28::t_29dc788196e3b4 261-304
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "f2ea7a6fee6f15a4c371bc8e9b69713a05851470",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
