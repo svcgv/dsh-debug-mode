@@ -9,3 +9,6 @@ coverage/
 .env
 .env.*
 !.env.example
+
+# Local API credentials; never commit.
+config.ini

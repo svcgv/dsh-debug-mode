@@ -13,6 +13,15 @@ DeepSeek Harness 的 Debug Mode Bundle，目标是在 Web composer 中提供 Nor
 - [安全规范](docs/security-and-safety.md)
 - [贡献指南](CONTRIBUTING.md)
 
+## 本地 API 配置与启动
+
+1. 复制 `config.example.ini` 为本地 `config.ini`。
+2. 在 `[deepseek]` 下填写 `api_key`；`config.ini` 已被 Git 忽略。
+3. 先运行 `pnpm config:check`，它只报告 key 长度，不会打印 key。
+4. 设置 `DSH_HARNESS_DIR`（默认使用相邻 `../deepseek-harness`），运行 `pnpm harness:web`。该脚本会在 `.dev/dsh-home` 的临时 profile 安装当前打包插件，并以 `DEEPSEEK_API_KEY` 启动 Harness Web。
+
+`harness:web` 不会修改你的默认 Harness profile，也不会输出 API key。
+
 ## 已知限制（阶段二当前状态）
 
 - Python/debugpy 后端：DAP 客户端与启动/清理已完成；真实断点 attach 需要 debugpy `adapter↔server↔client` 三段桥接（`debugpy.adapter --for-server` 模式），当前未在本环境完整打通，相关工作记录于 `docs/implementation-plan.md`。

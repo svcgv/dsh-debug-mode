@@ -57,7 +57,9 @@
     "test:platform": "vitest run --config vitest.platform.config.ts",
     "docs:check": "node scripts/check-docs.mjs",
     "pack:check": "pnpm run build && node scripts/verify-package.mjs",
-    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm docs:check && pnpm test:coverage && pnpm test:integration && pnpm test:platform && pnpm pack:check"
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm docs:check && pnpm test:coverage && pnpm test:integration && pnpm test:platform && pnpm pack:check",
+    "config:check": "node scripts/config-check.mjs",
+    "harness:web": "node scripts/run-harness-web.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.20.0",
