@@ -1,0 +1,67 @@
+src/listener/snapshot.ts
+  s_182fd8df93af28::t_e4ccf3713bccdc 97-99,107,120-122,124,142
+  s_182fd8df93af28::t_d273103e4aee08 1-11,14-22,26,28,30-46,65-66,72,75,94-95,100,118,123,126-127,138,144
+  s_182fd8df93af28::t_44e5a45a91a1ec 114-116
+  s_182fd8df93af28::t_8515676fc19a85 61-64,85-88,101-104
+  s_182fd8df93af28::t_b83e3feb49a220 23-25,27,29,47-60,67-71,73-74,82-84,89-93,96,105-106,108-111,113,117,119,125,128-137,139-141
+  s_182fd8df93af28::t_4ddcfd81d00088 12-13,76-81
+  s_182fd8df93af28::t_db3440d7a6b588 112,143
+tests/unit/listener/snapshot.spec.ts
+  s_182fd8df93af28::t_d38567c3f80aa9 4,6-9,50-51
+  s_182fd8df93af28::t_558e17f54ab0a9 55-61,63-64,70-77
+  s_182fd8df93af28::t_fa072d6b271003 35-43
+  s_182fd8df93af28::t_d5cbe2e9bee890 62,65-69
+  s_182fd8df93af28::t_8d7658b88352f0 1-3,5,10-34,44-45,78-84
+  s_182fd8df93af28::t_5495e8334f41d1 46-49,52-54
+src/listener/types.ts
+  s_182fd8df93af28::t_d273103e4aee08 1-9,11-30
+  s_182fd8df93af28::t_4ddcfd81d00088 10
+src/listener/store.ts
+  s_182fd8df93af28::t_e4ccf3713bccdc 127
+  s_182fd8df93af28::t_22b65111ce5b87 1-17,22-33,35-39,42-71,76-93,96-97,99-106,117-126,129-131
+  s_182fd8df93af28::t_558e17f54ab0a9 72-75
+  s_182fd8df93af28::t_4ddcfd81d00088 18-21
+  s_182fd8df93af28::t_aaf15ca97de0a4 34,40-41,94-95,98,107-116,128
+src/listener/http.ts
+  s_182fd8df93af28::t_4ddcfd81d00088 48-50,90-94,98-102,128-131,142-144
+  s_182fd8df93af28::t_e4ccf3713bccdc 158
+  s_182fd8df93af28::t_520dd46d4da939 1-47,51-65,67-68,71,73-89,95-97,103-127,132-135,161
+  s_182fd8df93af28::t_86a5f1b4623e0f 136-141,145-157,159-160
+  s_182fd8df93af28::t_5495e8334f41d1 66,69-70,72
+tests/unit/listener/http.spec.ts
+  s_182fd8df93af28::t_5495e8334f41d1 79-82,87,109,111,144-146
+  s_182fd8df93af28::t_8d7658b88352f0 2-5,22-31,36-38,42-43,48-53,55-60,71-78,147-150,170-181,186-188,190-191
+  s_182fd8df93af28::t_e4ccf3713bccdc 12-21,32,35,54
+  s_182fd8df93af28::t_d38567c3f80aa9 83,86
+  s_182fd8df93af28::t_558e17f54ab0a9 6-11,155,162,182-184
+  s_182fd8df93af28::t_4ddcfd81d00088 33-34,39-41,44-47,61-70,84-85,103-105,112-114,123-124,141-143,151-154,156-161
+  s_182fd8df93af28::t_784c9b2f8ea1e6 1,88-102,106-108,110,185,189
+  s_182fd8df93af28::t_d5cbe2e9bee890 115-122,125-140
+  s_182fd8df93af28::t_8515676fc19a85 163
+  s_182fd8df93af28::t_fa072d6b271003 164-169
+tests/unit/listener/store.spec.ts
+  s_182fd8df93af28::t_8d391054a35465 37
+  s_182fd8df93af28::t_8d7658b88352f0 1-36,40,42-45,47-49,58-60
+  s_182fd8df93af28::t_784c9b2f8ea1e6 54-56
+  s_182fd8df93af28::t_895c66b445f918 57
+  s_182fd8df93af28::t_558e17f54ab0a9 50-52
+  s_182fd8df93af28::t_8515676fc19a85 46
+  s_182fd8df93af28::t_5495e8334f41d1 38-39,41
+  s_182fd8df93af28::t_d5cbe2e9bee890 53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "47a5237807f7639910646c147dd7fbbb15cdc4f4",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
