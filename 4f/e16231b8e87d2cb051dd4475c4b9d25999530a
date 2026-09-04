@@ -1,0 +1,19 @@
+scripts/run-harness-web.mjs
+  s_182fd8df93af28::t_dd5d9da7a62302 43-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "4fe16231b8e87d2cb051dd4475c4b9d25999530a",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "gpt-5.6-terra"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
