@@ -1,0 +1,2 @@
+pnpm exec lint-staged
+git diff --cached --check

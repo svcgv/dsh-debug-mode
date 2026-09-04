@@ -1,0 +1,3 @@
+# Stage one intentionally contributes no runtime rows. Phase two will replace
+# the Web profile's ui-plan row after the standards gate is approved.
+[]

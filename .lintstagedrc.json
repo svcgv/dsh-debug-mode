@@ -1,0 +1,4 @@
+{
+  "*": "prettier --ignore-unknown --write",
+  "*.{ts,tsx,mts,cts}": "oxlint --type-aware --fix"
+}
