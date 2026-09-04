@@ -26,7 +26,7 @@ import type { DebugFoldEvent, DebugUnitState } from './types.ts'
 import { DebugRunManager } from '../run/manager.ts'
 import { resolveDebugRuntime } from '../run/registry.ts'
 import { debugToolDefinitions } from '../run/tools.ts'
-import { registerFrontendRuntime, registerNodeBackendRuntime } from '../runtime/register.ts'
+import { registerBackendRuntime, registerFrontendRuntime } from '../runtime/register.ts'
 
 /** Plugin name surfaced to the loader. */
 export const name = 'dsh-debug-mode'
@@ -184,7 +184,7 @@ export function apply(
   })
 
   registerFrontendRuntime()
-  registerNodeBackendRuntime()
+  registerBackendRuntime()
   const manager = createDebugRunManager()
   for (const definition of debugToolDefinitions(ctx, manager)) {
     ctx.tools.register(definition)
