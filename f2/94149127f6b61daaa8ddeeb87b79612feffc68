@@ -1,0 +1,31 @@
+tests/unit/runtime/endpoints.spec.ts
+  s_182fd8df93af28::t_4cbd17ed22e39e 1-11,13-27
+  s_182fd8df93af28::t_afc57c851c55be 12
+  s_182fd8df93af28::t_5b7b97973f6146 28-33
+tests/unit/runtime/source.spec.ts
+  s_182fd8df93af28::t_4cbd17ed22e39e 1-32
+src/runtime/endpoints.ts
+  s_182fd8df93af28::t_4cbd17ed22e39e 1-32,34-43
+  s_182fd8df93af28::t_afc57c851c55be 33
+  s_182fd8df93af28::t_bf9f9da56ec713 44-45
+src/runtime/source.ts
+  s_182fd8df93af28::t_afb4f644a5c09b 92
+  s_182fd8df93af28::t_4cbd17ed22e39e 1-91,93-95
+  s_182fd8df93af28::t_c9a2b503949c7c 96-97
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "f294149127f6b61daaa8ddeeb87b79612feffc68",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
