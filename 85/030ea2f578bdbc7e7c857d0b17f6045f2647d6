@@ -1,0 +1,79 @@
+src/mode/fold.ts
+  s_182fd8df93af28::t_40bf91e16a49ae 1-12,19-35,41-43,49-60,62,68-88,92,97-107,113-121
+  s_182fd8df93af28::t_a5f08c70488892 108-112
+  s_182fd8df93af28::t_3c04af125e1f61 13-18,36-40,44-48,61,63-67,89-91,93-96
+vitest.config.ts
+  s_182fd8df93af28::t_b4ad28c5c80ca3 2
+vitest.integration.config.ts
+  s_182fd8df93af28::t_b4ad28c5c80ca3 2
+vitest.platform.config.ts
+  s_182fd8df93af28::t_b4ad28c5c80ca3 2
+tests/unit/mode/definition.spec.ts
+  s_182fd8df93af28::t_3c04af125e1f61 21-24,26-29
+  s_182fd8df93af28::t_3d01d8068ba6b4 1-20,25,30-33
+src/compat/host-context.ts
+  s_182fd8df93af28::t_fde878b574f577 1-34,36-62
+  s_182fd8df93af28::t_1ade9b8f49bf28 35
+docs/adr/0003-external-mode-events.md
+  s_182fd8df93af28::t_844f4e5eed78f5 1-24
+src/mode/types.ts
+  s_182fd8df93af28::t_40bf91e16a49ae 1-42,44-49,55-56
+  s_182fd8df93af28::t_3c04af125e1f61 43,50-54
+tests/unit/mode/host.spec.ts
+  s_182fd8df93af28::t_70ae927e096099 7,9-10
+  s_182fd8df93af28::t_a7ef3e1db1b09f 27,33,39,70
+  s_182fd8df93af28::t_fde878b574f577 1-3,5-6,11,18,20-21,23-24,26,31,36-37,40-41,43-44,47-49,54-55,57-58,60-66,69,71-73,75,95-96,99,104-105,118-121,161-163,166,168,171,173-175,179,181-184,186-190,206-207
+  s_182fd8df93af28::t_f9a4c0b97ceda0 12-13,16,28,30,34,38,45-46,50,52-53,59,67,79-82,90,100-103,176,191-193,195-205
+  s_182fd8df93af28::t_76ade467b6a97d 165,167,170,172,178,180
+  s_182fd8df93af28::t_1ade9b8f49bf28 4,8,14,19,22,29,35,51,56,76-78,97,106,117,134-135
+  s_182fd8df93af28::t_1d4d5c6f5297a0 25,42,107,159,164,169,177
+  s_182fd8df93af28::t_3c04af125e1f61 127-129,131-132,140-142
+  s_182fd8df93af28::t_a5f08c70488892 136-139,143-157
+  s_182fd8df93af28::t_6435de9386d1ae 15,17,32,68,74,83-89,91-94,98,108-116,122-126,130,133,158,160,185,194
+docs/architecture.md
+  s_182fd8df93af28::t_844f4e5eed78f5 24
+docs/implementation-plan.md
+  s_182fd8df93af28::t_844f4e5eed78f5 65
+src/mode/policy.ts
+  s_182fd8df93af28::t_8f1278b9b4403f 1-20
+src/mode/host.ts
+  s_182fd8df93af28::t_18761891d71294 51-62
+  s_182fd8df93af28::t_a5f08c70488892 21,128
+  s_182fd8df93af28::t_741d135d790c5a 69-74,76,131-132
+  s_182fd8df93af28::t_3c04af125e1f61 12,154-157,177-178
+  s_182fd8df93af28::t_05bb9d192f28a3 20,25,46-50,63-68,77-78,96-99,103,114,143,167
+  s_182fd8df93af28::t_fde878b574f577 1-11,13-19,22-24,26-45,79-95,100-102,104-113,115-127,129-130,133-142,144-153,158-166,168-176,179-181
+  s_182fd8df93af28::t_f9a4c0b97ceda0 75
+tests/unit/mode/fold.spec.ts
+  s_182fd8df93af28::t_40bf91e16a49ae 1,3-9,11,13-37,39-46,48-80,109-111,116-120,132-148
+  s_182fd8df93af28::t_a112f9424ca0d9 101-108
+  s_182fd8df93af28::t_b4ad28c5c80ca3 2,12
+  s_182fd8df93af28::t_3c04af125e1f61 112-115,121-126
+  s_182fd8df93af28::t_a5f08c70488892 10,127-131
+  s_182fd8df93af28::t_71ea0a3950a439 38,47
+  s_182fd8df93af28::t_3d01d8068ba6b4 81-100
+src/index.ts
+  s_182fd8df93af28::t_3c04af125e1f61 1-8,10-24
+tests/unit/scaffold.spec.ts
+  s_182fd8df93af28::t_3c04af125e1f61 5-6,8-11
+  s_182fd8df93af28::t_b4ad28c5c80ca3 2-3
+tsconfig.json
+  s_182fd8df93af28::t_3c04af125e1f61 18
+  s_182fd8df93af28::t_b4ad28c5c80ca3 19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "85030ea2f578bdbc7e7c857d0b17f6045f2647d6",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
