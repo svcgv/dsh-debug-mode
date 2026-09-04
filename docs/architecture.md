@@ -21,7 +21,7 @@ Mode UI ──commands/projections──> DebugModeController
 
 ### DebugModeController
 
-拥有 `/debug` 命令、`debug/mode` 持久状态、模式投影和 Debug policy prompt。模式状态只在安全的 step 边界提交。它不直接修改源码、启动监听器或管理后端进程。
+拥有 `/debug` 命令、模式投影和 Debug policy prompt。激活状态从已知的 `command/run`/`command/done` 记录折叠，不写仓库外自定义事件（ADR 0003）。它不直接修改源码、启动监听器或管理后端进程。
 
 ### DebugRunManager
 

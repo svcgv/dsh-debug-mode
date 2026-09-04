@@ -62,7 +62,7 @@ Debug 命令、模式投影、UI 接管、埋点、监听器、调试协议和�
 - package 同时提供 Host 与 Browser 入口，并通过 Bundle patch 替换 Web profile 的 `ui-plan` roster 行。
 - 原 `conversation.input.plan` single 席位渲染 Normal、Plan、Debug 组合选择器。
 - Normal、Plan、Debug 严格互斥；保留原生 `/plan` 与 plan review 行为。
-- 增加 `/debug [message]`、`/debug off`、`debug/mode` 事件和 `DebugProjection`。
+- 增加 `/debug [message]`、`/debug off` 命令和 `DebugProjection`；状态从 `command/run`/`command/done` 折叠，不写自定义 session 事件（见 ADR 0003）。
 
 ### 模型接口
 
