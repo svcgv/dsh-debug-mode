@@ -151,13 +151,31 @@ export class FrontendRuntime implements DebugRuntime {
         const target = cursor + 1
         const timeout = Math.max(0, request.timeoutMs ?? 15_000)
         const ready = await this.store.waitFor(target, timeout)
+        if (ready) {
+          return {
+            kind: 'ok',
+            status: this.status,
+            cursor: String(target - 1),
+            text: 'New trace events arrived; call debug_control read to fetch them.',
+          }
+        }
+        // A runtime that loaded sends a heartbeat immediately. No events at
+        // all means the loopback endpoint was unreachable, so rotate to the
+        // LAN candidate automatically and ask for a reload.
+        if (this.store.count === 0 && !this.endpointsRotated) {
+          await this.rotateRuntimeEndpoints()
+          return {
+            kind: 'ok',
+            status: this.status,
+            cursor: String(target - 1),
+            text: `No heartbeat reached the loopback listener; rotated the trace endpoint. Reload or re-run the app so it reports to ${this.endpoints[this.endpointsRotated ? 1 : 0] ?? this.endpoints[0]}.`,
+          }
+        }
         return {
           kind: 'ok',
           status: this.status,
           cursor: String(target - 1),
-          text: ready
-            ? 'New trace events arrived; call debug_control read to fetch them.'
-            : 'No new trace events arrived within the wait budget.',
+          text: 'No new trace events arrived within the wait budget.',
         }
       }
       case 'read': {
@@ -264,6 +282,22 @@ export class FrontendRuntime implements DebugRuntime {
       internal: entry.internal,
     }))
     this.endpoints = endpointCandidates(views, this.port)
+  }
+
+  private async rotateRuntimeEndpoints(): Promise<void> {
+    this.endpointsRotated = true
+    const firstEndpoint = this.endpoints[0]
+    const rotated = firstEndpoint === undefined ? [] : [...this.endpoints.slice(1), firstEndpoint]
+    await writeFile(
+      this.runtimePath,
+      createTraceRuntimeSource({
+        runId: this.runId,
+        token: this.token,
+        endpoints: rotated,
+        projectPath: '',
+      }),
+      'utf8',
+    )
   }
 
   private parseCursor(value: string | undefined): TraceCursor {

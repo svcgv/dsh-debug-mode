@@ -51,7 +51,11 @@ describe('FrontendRuntime', () => {
 
     const wait = await runtime.control('wait', { action: 'wait', timeoutMs: 20 })
     if (wait.kind !== 'ok') throw new Error('wait failed')
-    expect(wait.text).toContain('No new trace events')
+    expect(wait.text).toContain('rotated')
+
+    const secondWait = await runtime.control('wait', { action: 'wait', timeoutMs: 20 })
+    if (secondWait.kind !== 'ok') throw new Error('second wait failed')
+    expect(secondWait.text).toContain('No new trace events')
 
     const read = await runtime.control('read', { action: 'read' })
     if (read.kind !== 'ok') throw new Error('read failed')
