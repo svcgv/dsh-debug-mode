@@ -1,0 +1,27 @@
+src/instrumentation/dart.ts
+  s_182fd8df93af28::t_611e93fc083896 1-17,20-25,27-46,53-57,64-70,80-100,111-113,134,137-151,158-160,167-171
+  s_182fd8df93af28::t_faad2fb2011337 47-52
+  s_182fd8df93af28::t_1c6e7908e7bbeb 26,156-157,165-166
+  s_182fd8df93af28::t_e9a717032b1225 114-123,130-133,135-136
+  s_182fd8df93af28::t_3756b9f93ddb49 18-19,58-63,71-79,101-110,124-129,152-155,161-164
+tests/unit/instrumentation/dart.spec.ts
+  s_182fd8df93af28::t_1c6e7908e7bbeb 1-33,36-41,48-55,90-97
+  s_182fd8df93af28::t_3756b9f93ddb49 34-35,42-47,76-82
+  s_182fd8df93af28::t_e9a717032b1225 56-75,83-89
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "334db619e7fbaa7b6e658fda62de2a78ee824179",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
