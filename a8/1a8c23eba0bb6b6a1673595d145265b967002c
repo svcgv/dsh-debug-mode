@@ -1,0 +1,27 @@
+src/runtime/flutter-net.ts
+  s_182fd8df93af28::t_3fb446fc398ae4 96-97,99
+  s_182fd8df93af28::t_f2c3e281f9ad5d 1-12,16,21,25-26,31-33,38-46,48-51,53-66,73,75-76,79-81,86-89,92-95,98,100
+  s_182fd8df93af28::t_fda2b42fad147d 47,52,72,74,77-78,90-91
+  s_182fd8df93af28::t_943b0aae646635 13-15
+  s_182fd8df93af28::t_27c56b22871945 17-20,23-24,27-30,34-37,67-70,82-85
+  s_182fd8df93af28::t_ab5fbfbfb938fe 22,71
+tests/unit/runtime/flutter-net.spec.ts
+  s_182fd8df93af28::t_27c56b22871945 23-24,30-31
+  s_182fd8df93af28::t_f2c3e281f9ad5d 1-22,25-29,32-45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "a81a8c23eba0bb6b6a1673595d145265b967002c",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
