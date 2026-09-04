@@ -3,6 +3,9 @@ import {
   findServicePids,
   isOrdinaryServiceCommand,
   parsePsRows,
+  parseWindowsProcessList,
+  windowsKillArgs,
+  windowsProcessListArgs,
 } from '../../../src/runtime/process.ts'
 
 describe('process discovery helpers', () => {
@@ -23,6 +26,23 @@ describe('process discovery helpers', () => {
       isOrdinaryServiceCommand('python -m debugpy --listen 1 /srv/app.py', '/srv/app.py'),
     ).toBe(false)
     expect(isOrdinaryServiceCommand('node /other.js', '/srv/app.js')).toBe(false)
+  })
+
+  it('builds windows process commands and parses json output', () => {
+    const args = windowsProcessListArgs()
+    expect(args[0]).toBe('-NoProfile')
+    expect(args.join(' ')).toContain('Get-CimInstance Win32_Process')
+    const rows = parseWindowsProcessList(
+      JSON.stringify([
+        { ProcessId: 1, CommandLine: 'node C:\\srv\\app.js' },
+        { ProcessId: 2, CommandLine: 5 },
+        'junk',
+      ]),
+    )
+    expect(rows).toEqual([{ pid: 1, command: 'node C:\\srv\\app.js' }])
+    expect(parseWindowsProcessList('not json')).toEqual([])
+    expect(windowsKillArgs(7, false)).toEqual(['/PID', '7', '/T'])
+    expect(windowsKillArgs(7, true)).toEqual(['/PID', '7', '/T', '/F'])
   })
 
   it('finds service pids excluding the current process', () => {

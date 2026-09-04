@@ -45,6 +45,40 @@ export function findServicePids(rows: ProcessRow[], scriptPath: string, ownPid: 
     .map((row) => row.pid)
 }
 
+/** Build the PowerShell command that lists processes with command lines. */
+export function windowsProcessListArgs(): readonly string[] {
+  const script =
+    'Get-CimInstance Win32_Process | Select-Object ProcessId, CommandLine | ConvertTo-Json -Compress'
+  return ['-NoProfile', '-NonInteractive', '-Command', script]
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+/** Parse PowerShell ConvertTo-Json output into process rows. */
+export function parseWindowsProcessList(output: string): ProcessRow[] {
+  let value: unknown
+  try {
+    value = JSON.parse(output)
+  } catch {
+    return []
+  }
+  if (!Array.isArray(value)) return []
+  const rows: ProcessRow[] = []
+  for (const entry of value) {
+    if (!isRecord(entry)) continue
+    if (typeof entry.ProcessId !== 'number' || typeof entry.CommandLine !== 'string') continue
+    rows.push({ pid: entry.ProcessId, command: entry.CommandLine })
+  }
+  return rows
+}
+
+/** Build taskkill arguments for one pid (graceful then force). */
+export function windowsKillArgs(pid: number, force: boolean): readonly string[] {
+  return force ? ['/PID', String(pid), '/T', '/F'] : ['/PID', String(pid), '/T']
+}
+
 /** Read the current POSIX process table. */
 export function listProcesses(): Promise<ProcessRow[]> {
   return new Promise((ok, fail) => {
