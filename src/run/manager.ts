@@ -55,8 +55,8 @@ export interface DebugRuntime {
   finish(outcome: DebugFinishOutcome): Promise<RuntimeFinishOk | DebugRunError>
 }
 
-/** Resolve the runtime adapter for a classified kind, if one is composed. */
-export type DebugRuntimeResolver = (kind: DebugRunKind) => DebugRuntime | undefined
+/** Resolve the runtime factory for a classified kind, if one is composed. */
+export type DebugRuntimeResolver = (kind: DebugRunKind, runId: string) => DebugRuntime | undefined
 
 interface RunRecord {
   readonly runId: string
@@ -121,7 +121,8 @@ export class DebugRunManager {
     // Validation guarantees at least one target, so auto classification always
     // resolves to the frontend family here.
     const kind: DebugRunKind = request.runtime === 'auto' ? 'frontend' : request.runtime
-    const runtime = this.resolveRuntime(kind)
+    const runId = this.mintRunId(sessionId)
+    const runtime = this.resolveRuntime(kind, runId)
     if (runtime === undefined) {
       return error(
         'RUNTIME_UNAVAILABLE',
@@ -129,7 +130,6 @@ export class DebugRunManager {
         false,
       )
     }
-    const runId = this.mintRunId(sessionId)
     const record: RunRecord = { runId, kind, runtime, status: 'preparing' }
     this.records.set(sessionId, record)
     const outcome = await runtime.start(request)

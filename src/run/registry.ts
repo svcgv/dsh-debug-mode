@@ -10,14 +10,17 @@
 import type { DebugRunKind } from './types.ts'
 import type { DebugRuntime } from './manager.ts'
 
-const adapters = new Map<DebugRunKind, DebugRuntime>()
+/** Factory that mints one independent runtime instance per run. */
+export type DebugRuntimeFactory = (runId: string) => DebugRuntime
 
-/** Register the runtime adapter for one family (replaces any previous entry). */
-export function registerDebugRuntime(kind: DebugRunKind, runtime: DebugRuntime): void {
-  adapters.set(kind, runtime)
+const factories = new Map<DebugRunKind, DebugRuntimeFactory>()
+
+/** Register the runtime factory for one family (replaces any previous entry). */
+export function registerDebugRuntime(kind: DebugRunKind, factory: DebugRuntimeFactory): void {
+  factories.set(kind, factory)
 }
 
-/** Resolve the registered adapter for one family, if any. */
-export function resolveDebugRuntime(kind: DebugRunKind): DebugRuntime | undefined {
-  return adapters.get(kind)
+/** Resolve the registered factory for one family, if any. */
+export function resolveDebugRuntime(kind: DebugRunKind): DebugRuntimeFactory | undefined {
+  return factories.get(kind)
 }

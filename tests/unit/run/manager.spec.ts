@@ -63,7 +63,7 @@ const startRequest = (runtime: DebugStartRequest['runtime'] = 'frontend'): Debug
 describe('DebugRunManager', () => {
   it('starts, controls, and finishes a run', async () => {
     const runtime = fakeRuntime()
-    const manager = new DebugRunManager(() => runtime)
+    const manager = new DebugRunManager((_kind, _runId) => runtime)
     const started = await manager.start('s1', startRequest())
     expect(started).toMatchObject({
       kind: 'ok',
@@ -84,7 +84,7 @@ describe('DebugRunManager', () => {
   })
 
   it('rejects a second concurrent run', async () => {
-    const manager = new DebugRunManager(() => fakeRuntime())
+    const manager = new DebugRunManager((_kind, _runId) => fakeRuntime())
     await manager.start('s1', startRequest())
     const second = await manager.start('s1', startRequest())
     expect(second).toMatchObject({ kind: 'error', code: 'RUN_ALREADY_ACTIVE' })
@@ -97,7 +97,7 @@ describe('DebugRunManager', () => {
   })
 
   it('validates target ranges before starting', async () => {
-    const manager = new DebugRunManager(() => fakeRuntime())
+    const manager = new DebugRunManager((_kind, _runId) => fakeRuntime())
     expect(await manager.start('s1', { targets: [], runtime: 'frontend' })).toMatchObject({
       kind: 'error',
       code: 'INVALID_TARGETS',
@@ -153,14 +153,14 @@ describe('DebugRunManager', () => {
           retryable: false,
         }),
     })
-    const manager = new DebugRunManager(() => runtime)
+    const manager = new DebugRunManager((_kind, _runId) => runtime)
     const result = await manager.start('s1', startRequest())
     expect(result).toMatchObject({ kind: 'error', code: 'INVALID_TARGETS' })
     expect(manager.hasActiveRun('s1')).toBe(false)
   })
 
   it('rejects control and finish without an active run', async () => {
-    const manager = new DebugRunManager(() => fakeRuntime())
+    const manager = new DebugRunManager((_kind, _runId) => fakeRuntime())
     expect(await manager.control('s1', { action: 'status' })).toMatchObject({
       kind: 'error',
       code: 'NO_ACTIVE_RUN',
@@ -172,7 +172,7 @@ describe('DebugRunManager', () => {
   })
 
   it('refuses control on finished runs', async () => {
-    const manager = new DebugRunManager(() => fakeRuntime())
+    const manager = new DebugRunManager((_kind, _runId) => fakeRuntime())
     await manager.start('s1', startRequest())
     await manager.finish('s1', 'cancelled')
     expect(await manager.control('s1', { action: 'read' })).toMatchObject({
@@ -185,7 +185,7 @@ describe('DebugRunManager', () => {
     const runtime = fakeRuntime({
       control: () => Promise.resolve({ kind: 'ok', status: 'failed', text: 'crashed' }),
     })
-    const manager = new DebugRunManager(() => runtime)
+    const manager = new DebugRunManager((_kind, _runId) => runtime)
     await manager.start('s1', startRequest())
     await manager.control('s1', { action: 'read' })
     expect(await manager.control('s1', { action: 'read' })).toMatchObject({
@@ -201,7 +201,7 @@ describe('DebugRunManager', () => {
       control: () =>
         Promise.resolve({ kind: 'ok', status: 'paused', cursor: 'c-7', text: 'paused' }),
     })
-    const manager = new DebugRunManager(() => runtime)
+    const manager = new DebugRunManager((_kind, _runId) => runtime)
     await manager.start('s1', startRequest())
     const result = await manager.control('s1', { action: 'stack' })
     const controlResult = asControl(result)
@@ -240,7 +240,7 @@ describe('DebugRunManager', () => {
   })
 
   it('keeps slot semantics for status and abandon', async () => {
-    const manager = new DebugRunManager(() => fakeRuntime())
+    const manager = new DebugRunManager((_kind, _runId) => fakeRuntime())
     expect(manager.status('s1')).toEqual({})
     await manager.start('s1', startRequest())
     expect(manager.status('s1').runId).toBeDefined()
@@ -250,7 +250,7 @@ describe('DebugRunManager', () => {
   })
 
   it('starts an auto-classified frontend run', async () => {
-    const manager = new DebugRunManager(() => fakeRuntime())
+    const manager = new DebugRunManager((_kind, _runId) => fakeRuntime())
     const result = await manager.start('s1', startRequest('auto'))
     expect(result).toMatchObject({ kind: 'ok', kindOfRun: 'frontend' })
   })

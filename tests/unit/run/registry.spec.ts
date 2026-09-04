@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { DebugRuntime } from '../../../src/run/manager.ts'
 import { registerDebugRuntime, resolveDebugRuntime } from '../../../src/run/registry.ts'
+import type { DebugRuntimeFactory } from '../../../src/run/registry.ts'
 
 function stubRuntime(kind: DebugRuntime['kind']): DebugRuntime {
   return {
@@ -30,18 +31,31 @@ describe('runtime adapter registry', () => {
     expect(resolveDebugRuntime('backend')).toBeUndefined()
   })
 
-  it('registers, overwrites, and resolves adapters', () => {
+  it('registers, overwrites, and resolves factories', () => {
     const first = stubRuntime('frontend')
-    registerDebugRuntime('frontend', first)
-    expect(resolveDebugRuntime('frontend')).toBe(first)
+    registerDebugRuntime('frontend', () => first)
+    expect(resolveDebugRuntime('frontend')?.('run-1')).toBe(first)
 
     const replacement = stubRuntime('frontend')
-    registerDebugRuntime('frontend', replacement)
-    expect(resolveDebugRuntime('frontend')).toBe(replacement)
+    registerDebugRuntime('frontend', () => replacement)
+    expect(resolveDebugRuntime('frontend')?.('run-2')).toBe(replacement)
 
     const backend = stubRuntime('backend')
-    registerDebugRuntime('backend', backend)
-    expect(resolveDebugRuntime('backend')).toBe(backend)
-    expect(resolveDebugRuntime('frontend')).toBe(replacement)
+    registerDebugRuntime('backend', () => backend)
+    expect(resolveDebugRuntime('backend')?.('run-3')).toBe(backend)
+  })
+
+  it('mints an independent instance per run id', () => {
+    let created = 0
+    const factory: DebugRuntimeFactory = () => {
+      created += 1
+      return stubRuntime('frontend')
+    }
+    registerDebugRuntime('frontend', factory)
+    const first = resolveDebugRuntime('frontend')
+    const second = resolveDebugRuntime('frontend')
+    expect(first).toBe(second)
+    expect(first?.('a')).not.toBe(first?.('b'))
+    expect(created).toBe(2)
   })
 })
