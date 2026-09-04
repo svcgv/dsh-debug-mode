@@ -1,0 +1,33 @@
+src/client.ts
+  s_182fd8df93af28::t_c82c7140217df7 30,33
+  s_182fd8df93af28::t_6c7f41641f403f 2-6
+docs/implementation-plan.md
+  s_182fd8df93af28::t_e05f548b803997 63-64
+src/client/ui.tsx
+  s_182fd8df93af28::t_6c7f41641f403f 2-5,12,14,17,37-38,40-43,45,47-48,52-56,61,66-67
+  s_182fd8df93af28::t_7f8cad0d12e93d 68-70
+tests/unit/client/wiring.spec.ts
+  s_182fd8df93af28::t_6c7f41641f403f 64
+tests/integration/package-manifest.spec.ts
+  s_182fd8df93af28::t_f4af050241935c 56,60-61
+docs/adr/0001-standalone-bundle.md
+  s_182fd8df93af28::t_e05f548b803997 12
+cordis.patch.yml
+  s_182fd8df93af28::t_e05f548b803997 1-6,15,18-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "be2407b53afe2035c484f0d5f8dddffb567ffdd9",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
