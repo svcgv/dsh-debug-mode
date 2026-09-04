@@ -53,10 +53,11 @@ describe('package manifest', () => {
     expect(manifest.dsh.client).toEqual({ platform: 'web', inject: [] })
   })
 
-  it('overrides the ui-plan seat and mounts the host controller', async () => {
+  it('mounts host and client rows without overriding ui-plan', async () => {
     const root = resolve(import.meta.dirname, '../..')
     const patch = await readFile(resolve(root, 'cordis.patch.yml'), 'utf8')
-    expect(patch).toMatch(/- id: ui-plan\s*\n\s+name: 'dsh-debug-mode'/)
     expect(patch).toMatch(/- id: debug-mode\s*\n\s+name: 'dsh-debug-mode\/host'/)
+    expect(patch).toMatch(/- id: debug-mode-client\s*\n\s+name: 'dsh-debug-mode'/)
+    expect(patch).not.toMatch(/- id: ui-plan/)
   })
 })

@@ -1,8 +1,9 @@
-# dsh-debug-mode composition overlay: mounts the host controller and replaces
-# the ui-plan browser seat with the combined Normal / Plan / Debug selector.
-# Plan behavior itself stays owned by @deepseek-ai/dsh-plan-mode.
-- id: ui-plan
-  name: 'dsh-debug-mode'
+# dsh-debug-mode composition overlay: mounts the host controller and the
+# browser debug toggle. The loader refuses to replace a row with a different
+# package name, so the official ui-plan Plan chip stays and our control rides
+# the composer's conversation.input.left list seat next to it. Exclusivity is
+# enforced host-side: /debug turns plan mode off, and selecting Debug from the
+# toggle turns plan mode off first.
 - insert:
     - id: debug-mode
       name: 'dsh-debug-mode/host'
@@ -11,7 +12,9 @@
           You are in debug mode. Debug mode authorizes instrumenting or pausing the project to obtain runtime evidence:
           - Locate the smallest relevant code range with searches, LSP, and file reads before changing anything.
           - Frontend targets: insert run-scoped probes into the located statements, ask the user to reproduce, then read bounded runtime evidence through debug_control.
-          - Backend targets: stop the existing service only after showing the recovery plan and receiving explicit confirmation, start the debugger with breakpoints in the located statements, then ask the user to reproduce.
+          - Backend targets: start the debugger with breakpoints in the located statements, then ask the user to reproduce.
           - Diagnose from runtime evidence first; propose a fix only after reporting the root cause, evidence, and confidence.
           - Fixes require user choice before editing; verify a fix by re-running the same reproduction.
-          - debug_finish removes probes, platform configuration, listeners, and debug processes, and restarts a stopped ordinary service unless told otherwise.
+          - debug_finish removes probes, platform configuration, listeners, and debug processes.
+    - id: debug-mode-client
+      name: 'dsh-debug-mode'

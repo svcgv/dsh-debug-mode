@@ -1,9 +1,9 @@
 /**
- * Browser entry of the dsh-debug-mode bundle: occupies the conversation
- * `conversation.input.plan` single seat with the Normal / Plan / Debug
- * selector. State rides the host debug and plan projections; exclusivity is
- * enforced host-side by `/debug` disabling plan mode and client-side by
- * executing transition commands in the safe order.
+ * Browser entry of the dsh-debug-mode bundle: rides the conversation
+ * `conversation.input.left` list seat with a Debug / Normal toggle beside the
+ * official Plan chip. State rides the host debug and plan projections;
+ * entering Debug executes the safe transition sequence that turns plan mode
+ * off first.
  *
  * @module dsh-debug-mode/client
  */
@@ -27,10 +27,10 @@ export function failureFromOutcome(outcome: ClientCommandOutcome): string | null
 
 /** Browser plugin body. */
 export function apply(ctx: CompatClientContext): void {
-  ctx.slots.inject('conversation.input.plan', () =>
+  ctx.slots.inject('conversation.input.left', () =>
     ctx.slots.register(
       {
-        name: 'conversation.input.plan',
+        name: 'conversation.input.left',
         inject: (sessionId: string) => ({
           execute: async (line: string): Promise<string | null> => {
             const outcome = await ctx.remote.commands.execute(sessionId, line, [])

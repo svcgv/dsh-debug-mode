@@ -61,7 +61,7 @@ describe('client wiring', () => {
   it('registers the conversation plan seat with an execute face', async () => {
     const harness = makeContext()
     apply(harness.ctx)
-    expect(harness.slot.name).toBe('conversation.input.plan')
+    expect(harness.slot.name).toBe('conversation.input.left')
     expect(harness.slot.inject('session-1')).toBeDefined()
     const face = harness.slot.inject('session-1')
     if (face === undefined) return

@@ -9,7 +9,7 @@ DeepSeek Harness 当前 Web composer 的模式区只有权限选择器和 `conve
 
 ## 决策
 
-`dsh-debug-mode` 作为独立安装 Bundle 发布，不修改 Harness checkout。Bundle patch 覆盖 Web profile 的 `ui-plan` roster 行，在原 single slot 中渲染 Normal、Plan、Debug 组合选择器。原生 Plan Host 插件、`/plan` 命令、投影和 review 继续由 Harness 拥有。
+`dsh-debug-mode` 作为独立安装 Bundle 发布，不修改 Harness checkout。Loader 拒绝把既有行替换为不同包名，因此保留官方 `ui-plan` 的 Plan chip，调试开关以独立 client row 挂载到 composer 的 `conversation.input.left` list seat。原生 Plan Host 插件、`/plan` 命令、投影和 review 继续由 Harness 拥有；进入 Debug 时 Host 通过 agent 作用域 `planMode.set(false)` 关闭 Plan。
 
 ## 影响
 
