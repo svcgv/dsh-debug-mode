@@ -72,5 +72,10 @@
     "tsdown": "^0.22.2",
     "typescript": "^6.0.3",
     "vitest": "^4.1.8"
+  },
+  "dependencies": {
+    "@babel/parser": "^8.0.4",
+    "@babel/traverse": "^8.0.4",
+    "@babel/types": "^8.0.4"
   }
 }
