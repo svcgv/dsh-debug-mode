@@ -1,0 +1,28 @@
+src/runtime/process.ts
+  s_182fd8df93af28::t_a03c9ac7339ab4 33
+  s_182fd8df93af28::t_7cfb3ca0824a0c 43-45,53-54
+  s_182fd8df93af28::t_45ade0397213b1 1-32,34-42,46-52,55-60
+src/runtime/node-backend.ts
+  s_182fd8df93af28::t_fab2ede9e4f471 13
+  s_182fd8df93af28::t_a03c9ac7339ab4 85-98
+tests/unit/runtime/process.spec.ts
+  s_182fd8df93af28::t_a03c9ac7339ab4 20-21,25
+  s_182fd8df93af28::t_45ade0397213b1 1,7-19,26-33
+  s_182fd8df93af28::t_7cfb3ca0824a0c 2-6,22-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "fa2b61c9e10db333e228bec44c38e878eb9c0612",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
