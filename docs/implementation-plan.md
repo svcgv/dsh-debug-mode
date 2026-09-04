@@ -100,7 +100,7 @@ interface DebugStartRequest {
 
 ### 后端运行时
 
-- 支持 Node.js/CDP 和 Python/debugpy DAP。
+- 支持 Node.js/CDP 和 Python/debugpy DAP。已知限制：debugpy `--listen` 模式的 attach 握手在部分环境未完成真实断点验证（见仓库 Known Limitations 说明）。
 - 探测 launch.json、package scripts、框架配置和现有监听进程。
 - 结束现有服务前展示进程及恢复信息并要求确认。
 - 支持 macOS、Linux、Windows 的进程树结束和服务恢复。

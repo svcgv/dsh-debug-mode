@@ -14,6 +14,7 @@ export interface DapTransport {
 interface Pending {
   readonly resolve: (body: unknown) => void
   readonly reject: (reason: unknown) => void
+  readonly timer: NodeJS.Timeout
 }
 
 interface EventWaiter {
@@ -60,7 +61,11 @@ export class DapClient {
     const seq = this.seq
     this.seq += 1
     return new Promise<unknown>((resolve, reject) => {
-      this.pending.set(seq, { resolve, reject })
+      const timer = setTimeout(() => {
+        this.pending.delete(seq)
+        reject(new Error(`DAP command ${command} timed out`))
+      }, 30_000)
+      this.pending.set(seq, { resolve, reject, timer })
       this.write({ seq, type: 'request', command, arguments: args })
     })
   }
@@ -119,7 +124,10 @@ export class DapClient {
     if (this.closed) return
     this.closed = true
     const reason = new Error('DAP transport closed')
-    for (const pending of this.pending.values()) pending.reject(reason)
+    for (const pending of this.pending.values()) {
+      clearTimeout(pending.timer)
+      pending.reject(reason)
+    }
     this.pending.clear()
     for (const waiter of waiters) {
       clearTimeout(waiter.timer)

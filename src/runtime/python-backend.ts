@@ -108,10 +108,6 @@ export class PythonBackendRuntime implements DebugRuntime {
       },
     )
     this.child = child
-    let stderr = ''
-    child.stderr?.on('data', (chunk: Buffer) => {
-      stderr += chunk.toString('utf8')
-    })
     try {
       await this.attach(port, request)
       return {
@@ -122,7 +118,12 @@ export class PythonBackendRuntime implements DebugRuntime {
       }
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : String(cause)
-      void stderr
+      this.client?.close()
+      this.client = undefined
+      this.socket?.destroy()
+      this.socket = undefined
+      if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL')
+      this.child = undefined
       return error('INVALID_TARGETS', `Could not attach debugpy: ${message}`)
     }
   }
@@ -223,7 +224,7 @@ export class PythonBackendRuntime implements DebugRuntime {
   }
 
   private async attach(port: number, request: DebugStartRequest): Promise<void> {
-    const socket = await connectSocket(port)
+    const socket = await connectWithRetry(port, this.child)
     this.socket = socket
     const client = new DapClient({ write: (data) => socket.write(data), close: () => socket.end() })
     socket.on('data', (chunk) => client.feed(chunk))
@@ -242,7 +243,7 @@ export class PythonBackendRuntime implements DebugRuntime {
       clientID: 'dsh-debug-mode',
       supportsVariableType: false,
     })
-    await client.send('attach', { port, host: '127.0.0.1' })
+    await client.send('attach', { port, pathMappings: [] })
     const first = request.targets[0]
     if (first !== undefined) {
       await client.send('setBreakpoints', {
@@ -287,10 +288,21 @@ export class PythonBackendRuntime implements DebugRuntime {
   }
 }
 
-function connectSocket(port: number): Promise<Socket> {
-  return new Promise((ok, fail) => {
-    const connection = connect({ host: '127.0.0.1', port })
-    connection.once('connect', () => ok(connection))
-    connection.once('error', fail)
-  })
+async function connectWithRetry(port: number, child: ChildProcess | undefined): Promise<Socket> {
+  const deadline = Date.now() + 15_000
+  for (;;) {
+    if (child !== undefined && child.exitCode !== null && child.signalCode !== null) {
+      throw new Error('debugpy exited before the adapter connected')
+    }
+    try {
+      return await new Promise<Socket>((ok, fail) => {
+        const connection = connect({ host: '127.0.0.1', port })
+        connection.once('connect', () => ok(connection))
+        connection.once('error', fail)
+      })
+    } catch {
+      if (Date.now() >= deadline) throw new Error('timed out connecting to debugpy')
+      await new Promise((ok) => setTimeout(ok, 200))
+    }
+  }
 }
