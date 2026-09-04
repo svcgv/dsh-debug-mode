@@ -25,15 +25,9 @@ const env = { ...process.env, DSH_HOME: dshHome, DEEPSEEK_API_KEY: key }
 
 // The profile is local to .dev/. Removing then adding gives the current source
 // package a fresh install without touching the user's normal Harness profile.
-await run(
-  'pnpm',
-  ['dsh', 'plugin', '--profile', 'web', 'remove', 'dsh-debug-mode'],
-  harness,
-  env,
-  true,
-)
-await run('pnpm', ['dsh', 'plugin', '--profile', 'web', 'add', packagePath], harness, env)
-await run('pnpm', ['dsh', '--profile', 'web', '--no-open', ...process.argv.slice(2)], harness, env)
+await runPnpm(['dsh', 'plugin', '--profile', 'web', 'remove', 'dsh-debug-mode'], harness, env, true)
+await runPnpm(['dsh', 'plugin', '--profile', 'web', 'add', packagePath], harness, env)
+await runPnpm(['dsh', '--profile', 'web', '--no-open', ...process.argv.slice(2)], harness, env)
 
 function runPnpm(args, cwd, childEnv, allowFailure = false) {
   const execPath = process.env.npm_execpath
