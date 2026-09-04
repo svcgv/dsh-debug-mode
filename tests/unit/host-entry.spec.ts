@@ -16,6 +16,7 @@ describe('host entry', () => {
     const sections: RegisteredSection[] = []
     let registerCalls = 0
     const ctx: CompatHostContext = {
+      tools: { register: () => undefined },
       sessionProjections: {
         register: () => {
           registerCalls += 1

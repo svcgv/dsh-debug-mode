@@ -37,6 +37,9 @@ export interface CompatPlanModeService {
 
 /** The harness root context members this plugin uses. */
 export interface CompatHostContext {
+  readonly tools: {
+    register(definition: unknown): void
+  }
   readonly sessionProjections: {
     register(definition: unknown): () => void
     stateOf(session: { readonly id: string }, key: string): unknown

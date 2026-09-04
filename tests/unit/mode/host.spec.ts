@@ -34,6 +34,7 @@ function makeContext(options: { initial?: DebugUnitState; noState?: boolean } = 
   const sections: RegisteredSection[] = []
   const commands: RegisteredCommand[] = []
   const ctx: CompatHostContext = {
+    tools: { register: () => undefined },
     sessionProjections: {
       register: () => {
         registerCalls.count += 1
