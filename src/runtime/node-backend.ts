@@ -10,6 +10,7 @@
 import { spawn, type ChildProcess } from 'node:child_process'
 import { basename, dirname, resolve } from 'node:path'
 import { CdpClient } from './cdp.ts'
+import { findServicePids, listProcesses } from './process.ts'
 import type {
   DebugRuntime,
   RuntimeControlOk,
@@ -80,6 +81,20 @@ export class NodeBackendRuntime implements DebugRuntime {
         'UNSUPPORTED_TARGET',
         'The Node backend currently supports .js, .cjs, and .mjs services; TS entrypoints need a compiled run target.',
       )
+    }
+    if (process.platform !== 'win32') {
+      try {
+        const rows = await listProcesses()
+        const existing = findServicePids(rows, script, process.pid)
+        if (existing.length > 0) {
+          return error(
+            'RUNTIME_UNAVAILABLE',
+            `A normal service for ${script} is already running (pid ${existing.join(', ')}). Stop it first or use a launch configuration that owns the process.`,
+          )
+        }
+      } catch {
+        // Process-table reads are best-effort; launch proceeds when unknown.
+      }
     }
     return new Promise<RuntimeStartOk | DebugRunError>((resolvePromise, rejectPromise) => {
       const child = spawn(process.execPath, ['--inspect=127.0.0.1:0', script], {
