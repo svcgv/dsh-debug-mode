@@ -1,0 +1,23 @@
+src/runtime/process.ts
+  s_182fd8df93af28::t_1362a5749d4f14 50-51,55-58,70-72,79
+  s_182fd8df93af28::t_ae065f821a5f73 48-49,52-54,59-69,73-78,80-81
+tests/unit/runtime/process.spec.ts
+  s_182fd8df93af28::t_ae065f821a5f73 31-47
+  s_182fd8df93af28::t_8a0af4b03412e5 6-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "eefc21ecd1dae21a051983da51239ce407983a36",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
