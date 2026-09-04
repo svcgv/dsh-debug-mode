@@ -1,0 +1,42 @@
+src/runtime/register.ts
+  s_182fd8df93af28::t_8eee5046c6056f 11,18-20
+src/runtime/dap.ts
+  s_182fd8df93af28::t_acfdad18235b6d 1-27,32-154,159-177
+  s_182fd8df93af28::t_e29e302e2107d8 28-31,155-158
+vitest.config.ts
+  s_182fd8df93af28::t_589ad10d3ecc49 12
+src/runtime/backend-router.ts
+  s_182fd8df93af28::t_8eee5046c6056f 1-7,20-38,43,51-56,65-67
+  s_182fd8df93af28::t_e29e302e2107d8 8-19,39-42,44-50,57-64
+src/runtime/python-backend.ts
+  s_182fd8df93af28::t_e29e302e2107d8 15-26,75-78,82-83,85-86,88-91,97-100,102-109,130-133,138-142,150-151,154-161,169-174,178-179,239-243,250-252,258-263,269-270,275-277
+  s_182fd8df93af28::t_e883fecf722fcd 11
+  s_182fd8df93af28::t_b8924f4212f7cf 1-10,12-14,27,30-31,34-74,79-81,84,87,92-96,101,110-129,134-137,143-149,152-153,162-168,183-238,244-249,253-257,264-268,271-274,278-296
+  s_182fd8df93af28::t_b4f5d5cdee6ac6 176
+  s_182fd8df93af28::t_5d8afc76aa85b8 28-29,32-33,175,177,180-182
+tests/unit/runtime/dap.spec.ts
+  s_182fd8df93af28::t_e29e302e2107d8 15-18,28-31,41-50,61-70
+  s_182fd8df93af28::t_7a9ce0280d3abb 1-14,19-27,32-40,51-60,71-97
+src/mode/host.ts
+  s_182fd8df93af28::t_8eee5046c6056f 29,187
+tests/unit/runtime/python-backend.spec.ts
+  s_182fd8df93af28::t_0d576325068e51 1-44
+docs/testing-strategy.md
+  s_182fd8df93af28::t_589ad10d3ecc49 47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "9592a517f59392d090a338bec2f3c6dd084db425",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
