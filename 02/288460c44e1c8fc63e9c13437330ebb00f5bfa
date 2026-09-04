@@ -1,0 +1,31 @@
+src/instrumentation/js.ts
+  s_182fd8df93af28::t_7bda6735476dfb 33-34,168,170
+  s_182fd8df93af28::t_b81615fda78a52 223,225
+tests/unit/instrumentation/sfc.spec.ts
+  s_182fd8df93af28::t_2e466df8a06fae 86-101
+  s_182fd8df93af28::t_595aadd0189178 1-29,33-50,52-63,104-108
+  s_182fd8df93af28::t_bddba787e88163 51
+  s_182fd8df93af28::t_4bfee18963b24f 64-85,102-103
+  s_182fd8df93af28::t_a9faea72072e4f 30-32
+  s_182fd8df93af28::t_f008fa4291d439 109-115
+src/instrumentation/sfc.ts
+  s_182fd8df93af28::t_595aadd0189178 62,73
+  s_182fd8df93af28::t_7bda6735476dfb 1-61,63-72,74-95
+  s_182fd8df93af28::t_743e4d1f332001 96-98
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "02288460c44e1c8fc63e9c13437330ebb00f5bfa",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
