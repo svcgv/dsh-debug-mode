@@ -1,0 +1,27 @@
+tests/integration/python-debugpy.spec.ts
+  s_182fd8df93af28::t_ebee91752e4c16 1-93
+src/runtime/dap.ts
+  s_182fd8df93af28::t_f8da2d1638430d 17,64-68,127-130
+src/runtime/python-backend.ts
+  s_182fd8df93af28::t_5e4a857862d27b 227,291-307
+  s_182fd8df93af28::t_a7db9b1e856ed5 246
+  s_182fd8df93af28::t_ebee91752e4c16 121-126
+docs/implementation-plan.md
+  s_182fd8df93af28::t_2e987664303bf1 103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "0f58f7d77d25678e9c1d9c65f920b582f042bc53",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
