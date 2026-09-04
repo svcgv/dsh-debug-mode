@@ -7,7 +7,7 @@ type RegisteredSection = Parameters<CompatHostContext['systemPrompt']['section']
 describe('host entry', () => {
   it('re-exports the controller identity and root service declarations', () => {
     expect(name).toBe('dsh-debug-mode')
-    expect(inject).toEqual(['sessionProjections', 'systemPrompt'])
+    expect(inject).toEqual(['sessionProjections', 'systemPrompt', 'tools'])
     expect(apply).toBeTypeOf('function')
   })
 

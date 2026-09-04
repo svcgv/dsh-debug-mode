@@ -23,4 +23,4 @@ export { DEBUG_POLICY_ORDER } from './mode/policy.ts'
 export type { DebugFoldEvent, DebugProjection, DebugUnitState } from './mode/types.ts'
 
 /** Root services the debug-mode controller registers into. */
-export const inject = ['sessionProjections', 'systemPrompt']
+export const inject = ['sessionProjections', 'systemPrompt', 'tools']
