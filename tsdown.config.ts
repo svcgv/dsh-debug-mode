@@ -3,7 +3,7 @@ import { defineConfig } from 'tsdown'
 export default defineConfig([
   {
     name: 'dsh-debug-mode-host',
-    entry: { index: 'src/index.ts' },
+    entry: { index: 'src/index.ts', host: 'src/host.ts' },
     outDir: 'lib',
     format: ['esm'],
     fixedExtension: false,
@@ -22,5 +22,8 @@ export default defineConfig([
     target: 'es2024',
     dts: true,
     clean: false,
+    deps: {
+      neverBundle: ['react'],
+    },
   },
 ])

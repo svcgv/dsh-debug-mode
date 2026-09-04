@@ -17,6 +17,8 @@ const required = [
   'cordis.patch.yml',
   'lib/index.js',
   'lib/index.d.ts',
+  'lib/host.js',
+  'lib/host.d.ts',
   'lib/client.js',
   'lib/client.d.ts',
 ]

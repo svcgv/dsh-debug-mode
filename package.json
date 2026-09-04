@@ -19,6 +19,10 @@
       "types": "./lib/index.d.ts",
       "default": "./lib/index.js"
     },
+    "./host": {
+      "types": "./lib/host.d.ts",
+      "default": "./lib/host.js"
+    },
     "./client": {
       "types": "./lib/client.d.ts",
       "default": "./lib/client.js"
@@ -57,12 +61,14 @@
   },
   "devDependencies": {
     "@types/node": "^22.20.0",
+    "@types/react": "~18.3.31",
     "@vitest/coverage-v8": "^4.1.8",
     "husky": "^9.1.7",
     "lint-staged": "^17.4.1",
     "oxlint": "1.76.0",
     "oxlint-tsgolint": "7.0.2001",
     "prettier": "^3.9.6",
+    "react": "^18.3.1",
     "tsdown": "^0.22.2",
     "typescript": "^6.0.3",
     "vitest": "^4.1.8"

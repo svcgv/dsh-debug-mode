@@ -42,17 +42,21 @@ function parseManifest(text: string): PackageManifest {
   }
 }
 
-describe('stage-one package manifest', () => {
-  it('declares a bundle and browser entry without activating runtime rows', async () => {
+describe('package manifest', () => {
+  it('declares host, roster, and browser entries', async () => {
     const root = resolve(import.meta.dirname, '../..')
     const manifest = parseManifest(await readFile(resolve(root, 'package.json'), 'utf8'))
-    const patch = await readFile(resolve(root, 'cordis.patch.yml'), 'utf8')
-
     expect(manifest.name).toBe('dsh-debug-mode')
+    expect(manifest.exports).toHaveProperty('./host')
     expect(manifest.exports).toHaveProperty('./client')
     expect(manifest.dsh.bundle.patch).toBe('./cordis.patch.yml')
     expect(manifest.dsh.client).toEqual({ platform: 'web', inject: [] })
-    expect(patch.trimEnd().endsWith('[]')).toBe(true)
-    expect(patch).not.toMatch(/^\s*-\s+id:\s+ui-plan\b/m)
+  })
+
+  it('overrides the ui-plan seat and mounts the host controller', async () => {
+    const root = resolve(import.meta.dirname, '../..')
+    const patch = await readFile(resolve(root, 'cordis.patch.yml'), 'utf8')
+    expect(patch).toMatch(/- id: ui-plan\s*\n\s+name: 'dsh-debug-mode'/)
+    expect(patch).toMatch(/- id: debug-mode\s*\n\s+name: 'dsh-debug-mode\/host'/)
   })
 })

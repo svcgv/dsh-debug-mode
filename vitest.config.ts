@@ -9,7 +9,7 @@ export default mergeConfig(
       coverage: {
         provider: 'v8',
         include: ['src/**/*.ts'],
-        exclude: ['src/**/*.types.ts'],
+        exclude: ['src/**/*.types.ts', '**/*.tsx'],
         reporter: ['text', 'json-summary', 'html'],
         thresholds: {
           statements: 90,

@@ -1,3 +1,17 @@
-# Stage one intentionally contributes no runtime rows. Phase two will replace
-# the Web profile's ui-plan row after the standards gate is approved.
-[]
+# dsh-debug-mode composition overlay: mounts the host controller and replaces
+# the ui-plan browser seat with the combined Normal / Plan / Debug selector.
+# Plan behavior itself stays owned by @deepseek-ai/dsh-plan-mode.
+- id: ui-plan
+  name: 'dsh-debug-mode'
+- insert:
+    - id: debug-mode
+      name: 'dsh-debug-mode/host'
+      config:
+        section: |-
+          You are in debug mode. Debug mode authorizes instrumenting or pausing the project to obtain runtime evidence:
+          - Locate the smallest relevant code range with searches, LSP, and file reads before changing anything.
+          - Frontend targets: insert run-scoped probes into the located statements, ask the user to reproduce, then read bounded runtime evidence through debug_control.
+          - Backend targets: stop the existing service only after showing the recovery plan and receiving explicit confirmation, start the debugger with breakpoints in the located statements, then ask the user to reproduce.
+          - Diagnose from runtime evidence first; propose a fix only after reporting the root cause, evidence, and confidence.
+          - Fixes require user choice before editing; verify a fix by re-running the same reproduction.
+          - debug_finish removes probes, platform configuration, listeners, and debug processes, and restarts a stopped ordinary service unless told otherwise.
