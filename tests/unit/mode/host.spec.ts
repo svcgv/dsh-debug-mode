@@ -27,14 +27,20 @@ function makeContext(options: { initial?: DebugUnitState; noState?: boolean } = 
   registerCalls: { count: number }
   sections: RegisteredSection[]
   commands: RegisteredCommand[]
+  tools: string[]
   state: DebugUnitState
 } {
   const state: DebugUnitState = options.initial ?? { active: false, running: null }
   const registerCalls = { count: 0 }
   const sections: RegisteredSection[] = []
   const commands: RegisteredCommand[] = []
+  const tools: string[] = []
   const ctx: CompatHostContext = {
-    tools: { register: () => undefined },
+    tools: {
+      register: (definition) => {
+        tools.push(definition.name)
+      },
+    },
     sessionProjections: {
       register: () => {
         registerCalls.count += 1
@@ -57,7 +63,7 @@ function makeContext(options: { initial?: DebugUnitState; noState?: boolean } = 
       callback({ commands: commandsService })
     },
   }
-  return { ctx, registerCalls, sections, commands, state }
+  return { ctx, registerCalls, sections, commands, tools, state }
 }
 
 describe('debug mode host wiring', () => {
@@ -93,6 +99,12 @@ describe('debug mode host wiring', () => {
       kind: 'success',
       text: 'Debug mode on. Use /debug off to leave.',
     })
+  })
+
+  it('registers the three model tools', () => {
+    const harness = makeContext()
+    apply(harness.ctx)
+    expect(harness.tools).toEqual(['debug_start', 'debug_control', 'debug_finish'])
   })
 
   it('registers the /debug command with attachments', () => {

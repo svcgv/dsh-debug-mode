@@ -23,6 +23,10 @@ import {
 } from './fold.ts'
 import { DEBUG_POLICY_ORDER, renderDebugPolicy, type DebugPolicyAgentContext } from './policy.ts'
 import type { DebugFoldEvent, DebugUnitState } from './types.ts'
+import { DebugRunManager } from '../run/manager.ts'
+import { resolveDebugRuntime } from '../run/registry.ts'
+import { debugToolDefinitions } from '../run/tools.ts'
+import { registerFrontendRuntime } from '../runtime/register.ts'
 
 /** Plugin name surfaced to the loader. */
 export const name = 'dsh-debug-mode'
@@ -177,5 +181,19 @@ export function apply(
       handler: ({ agent, rawInput, attachments }) =>
         handleDebugCommand(ctx, agent, rawInput, attachments),
     })
+  })
+
+  registerFrontendRuntime()
+  const manager = createDebugRunManager()
+  for (const definition of debugToolDefinitions(ctx, manager)) {
+    ctx.tools.register(definition)
+  }
+}
+
+/** Build the session run manager backed by the shared runtime registry. */
+export function createDebugRunManager(): DebugRunManager {
+  return new DebugRunManager((kind, runId) => {
+    const factory = resolveDebugRuntime(kind)
+    return factory === undefined ? undefined : factory(runId)
   })
 }

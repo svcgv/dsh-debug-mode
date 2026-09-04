@@ -11,12 +11,17 @@ describe('host entry', () => {
     expect(apply).toBeTypeOf('function')
   })
 
-  it('registers projection, policy, and command wiring', () => {
+  it('registers projection, policy, command, and tool wiring', () => {
     const state = { active: true, running: null }
     const sections: RegisteredSection[] = []
+    const tools: string[] = []
     let registerCalls = 0
     const ctx: CompatHostContext = {
-      tools: { register: () => undefined },
+      tools: {
+        register: (definition) => {
+          tools.push(definition.name)
+        },
+      },
       sessionProjections: {
         register: () => {
           registerCalls += 1
@@ -41,5 +46,6 @@ describe('host entry', () => {
     expect(registerCalls).toBe(1)
     expect(sections[0]?.name).toBe('debug:policy')
     expect(sections[0]?.text({ agent: { session: { id: 's1' } } })).toBe('policy text')
+    expect(tools).toEqual(['debug_start', 'debug_control', 'debug_finish'])
   })
 })
