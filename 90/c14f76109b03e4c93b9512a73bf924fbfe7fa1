@@ -1,0 +1,22 @@
+src/runtime/frontend.ts
+  s_182fd8df93af28::t_48caa199c1903f 154-173,178,287-296
+  s_182fd8df93af28::t_d3cf3dd12417e6 297-302
+tests/unit/runtime/frontend.spec.ts
+  s_182fd8df93af28::t_db33e7e4601c78 54-58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "90c14f76109b03e4c93b9512a73bf924fbfe7fa1",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
