@@ -17,7 +17,7 @@ for (const entry of await readdir(tarballs)) {
   if (entry.endsWith('.tgz')) await rm(resolve(tarballs, entry))
 }
 
-await run('pnpm', ['pack', '--pack-destination', tarballs], root, {})
+await runPnpm(['pack', '--pack-destination', tarballs], root, {})
 const tarball = (await readdir(tarballs)).find((entry) => entry.endsWith('.tgz'))
 if (tarball === undefined) throw new Error('pnpm pack did not produce a tarball')
 const packagePath = resolve(tarballs, tarball)
@@ -35,13 +35,16 @@ await run(
 await run('pnpm', ['dsh', 'plugin', '--profile', 'web', 'add', packagePath], harness, env)
 await run('pnpm', ['dsh', '--profile', 'web', '--no-open', ...process.argv.slice(2)], harness, env)
 
-function run(command, args, cwd, childEnv, allowFailure = false) {
+function runPnpm(args, cwd, childEnv, allowFailure = false) {
+  const execPath = process.env.npm_execpath
+  const command = execPath === undefined ? 'pnpm' : process.execPath
+  const commandArgs = execPath === undefined ? args : [execPath, ...args]
   return new Promise((resolvePromise, reject) => {
-    const child = spawn(command, args, { cwd, env: childEnv, stdio: 'inherit' })
+    const child = spawn(command, commandArgs, { cwd, env: childEnv, stdio: 'inherit' })
     child.once('error', reject)
     child.once('exit', (code) => {
       if (code === 0 || allowFailure) resolvePromise()
-      else reject(new Error(`${command} ${args.join(' ')} exited with code ${code ?? 'unknown'}`))
+      else reject(new Error(`pnpm ${args.join(' ')} exited with code ${code ?? 'unknown'}`))
     })
   })
 }
