@@ -116,7 +116,7 @@ interface DebugStartRequest {
 
 仍未闭环（如实记录，见 README 已知限制）：
 
-- Python/debugpy 真实 attach 需要 `adapter↔server↔client` 三段桥接验证。
+- Python/debugpy 真实 attach：已闭环（2026-09-05，debugpy 1.8.21 + `PY_DEBUGPY` 集成测试通过：attach→断点停止→next→evaluate→finish）。
 - 后端"停既有服务→调试→恢复"确认闭环。
 - 真实 Flutter/移动端验证与 LAN endpoint 切换的人工复现。
 - 依赖模型调用的浏览器端到端取证（埋点日志/断点命中）复现。

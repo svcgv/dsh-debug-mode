@@ -63,6 +63,26 @@ interface StopState {
   readonly reason: string
 }
 
+/** Pick the client-facing debuggee DAP socket from a `debugpySockets` body.
+ * debugpy's `--listen` port is an adapter control channel; the actual DAP
+ * session runs on the reported non-internal socket. Falls back to the listen
+ * port for debugpy builds that expose DAP directly there.
+ */
+export function pickDebuggeeSocketPort(value: unknown, fallback: number): number {
+  if (isRecord(value) && Array.isArray(value.sockets)) {
+    for (const candidate of value.sockets) {
+      if (
+        isRecord(candidate) &&
+        candidate.internal !== true &&
+        typeof candidate.port === 'number'
+      ) {
+        return candidate.port
+      }
+    }
+  }
+  return fallback
+}
+
 /** One running Python debug session for a long-lived service. */
 export class PythonBackendRuntime implements DebugRuntime {
   readonly kind = 'backend' as const
@@ -229,7 +249,9 @@ export class PythonBackendRuntime implements DebugRuntime {
     const client = new DapClient({ write: (data) => socket.write(data), close: () => socket.end() })
     socket.on('data', (chunk) => client.feed(chunk))
     this.client = client
+    let socketsBody: unknown
     client.onEvent((event, body) => {
+      if (event === 'debugpySockets') socketsBody = body
       if (event === 'stopped' && typeof body === 'object' && body !== null) {
         const record = body as { reason?: unknown; threadId?: unknown }
         if (typeof record.reason === 'string' && typeof record.threadId === 'number') {
@@ -243,7 +265,17 @@ export class PythonBackendRuntime implements DebugRuntime {
       clientID: 'dsh-debug-mode',
       supportsVariableType: false,
     })
-    await client.send('attach', { port, pathMappings: [] })
+    if (socketsBody === undefined) {
+      try {
+        await client.waitForEvent('debugpySockets', 5_000)
+      } catch {
+        // Older debugpy builds expose DAP directly on the listen port.
+      }
+    }
+    const debuggeePort = pickDebuggeeSocketPort(socketsBody, port)
+    // debugpy defers the attach response until configurationDone, so the
+    // attach request must be pipelined ahead of the remaining handshake.
+    const attaching = client.send('attach', { port: debuggeePort, pathMappings: [] })
     const first = request.targets[0]
     if (first !== undefined) {
       await client.send('setBreakpoints', {
@@ -254,6 +286,7 @@ export class PythonBackendRuntime implements DebugRuntime {
       })
     }
     await client.send('configurationDone')
+    await attaching
   }
 
   private async awaitStop(

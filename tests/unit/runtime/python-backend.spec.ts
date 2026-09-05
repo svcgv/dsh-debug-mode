@@ -1,11 +1,36 @@
 import { describe, expect, it } from 'vitest'
 import { BackendRouterRuntime } from '../../../src/runtime/backend-router.ts'
-import { PythonBackendRuntime, reservePort } from '../../../src/runtime/python-backend.ts'
+import {
+  PythonBackendRuntime,
+  pickDebuggeeSocketPort,
+  reservePort,
+} from '../../../src/runtime/python-backend.ts'
 
 describe('python backend helpers', () => {
   it('reserves an ephemeral TCP port', async () => {
     const port = await reservePort()
     expect(port).toBeGreaterThan(0)
+  })
+
+  it('picks the non-internal debuggee socket from a debugpySockets body', () => {
+    expect(
+      pickDebuggeeSocketPort(
+        {
+          sockets: [
+            { host: '127.0.0.1', port: 5000, internal: false },
+            { host: '127.0.0.1', port: 5001, internal: true },
+          ],
+        },
+        1234,
+      ),
+    ).toBe(5000)
+  })
+
+  it('falls back to the listen port when no debuggee socket is advertised', () => {
+    expect(pickDebuggeeSocketPort(undefined, 4321)).toBe(4321)
+    expect(pickDebuggeeSocketPort({ sockets: [] }, 4321)).toBe(4321)
+    expect(pickDebuggeeSocketPort({ sockets: [{ port: 5000, internal: true }] }, 4321)).toBe(4321)
+    expect(pickDebuggeeSocketPort({ sockets: 'nope' }, 4321)).toBe(4321)
   })
 })
 
