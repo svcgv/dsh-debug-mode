@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   findServicePids,
   isOrdinaryServiceCommand,
+  killProcessPid,
   parsePsRows,
   parseWindowsProcessList,
   windowsKillArgs,
@@ -43,6 +44,21 @@ describe('process discovery helpers', () => {
     expect(parseWindowsProcessList('not json')).toEqual([])
     expect(windowsKillArgs(7, false)).toEqual(['/PID', '7', '/T'])
     expect(windowsKillArgs(7, true)).toEqual(['/PID', '7', '/T', '/F'])
+  })
+
+  it('terminates via taskkill on windows and sigterm elsewhere', async () => {
+    // Windows branch: taskkill is absent in this environment, so both the
+    // graceful and the force fallback error out and the promise resolves.
+    const original = Object.getOwnPropertyDescriptor(process, 'platform')
+    try {
+      Object.defineProperty(process, 'platform', { value: 'win32', configurable: true })
+      await expect(killProcessPid(999_999_999)).resolves.toBeUndefined()
+    } finally {
+      if (original !== undefined) Object.defineProperty(process, 'platform', original)
+      else Object.defineProperty(process, 'platform', { value: 'darwin', configurable: true })
+    }
+    // POSIX branch against a nonexistent pid resolves without throwing.
+    await expect(killProcessPid(999_999_999)).resolves.toBeUndefined()
   })
 
   it('finds service pids excluding the current process', () => {

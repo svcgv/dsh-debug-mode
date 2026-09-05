@@ -10,7 +10,7 @@
 import { spawn, type ChildProcess } from 'node:child_process'
 import { basename, dirname, resolve } from 'node:path'
 import { CdpClient } from './cdp.ts'
-import { findServicePids, listProcesses } from './process.ts'
+import { findServicePids, killProcessPid, listProcesses } from './process.ts'
 import type {
   DebugRuntime,
   RuntimeControlOk,
@@ -43,6 +43,14 @@ interface WaitEntry {
   readonly resolve: (state: PauseState) => void
   readonly reject: (reason: unknown) => void
   readonly timer: NodeJS.Timeout
+}
+
+/** An ordinary service this runtime stopped after user confirmation, to be
+ * restarted on finish with the command that was running. */
+interface StoppedService {
+  readonly pid: number
+  readonly command: string
+  readonly cwd: string
 }
 
 /** Extract the inspector websocket URL from stderr. */
@@ -79,6 +87,7 @@ export class NodeBackendRuntime implements DebugRuntime {
   private readonly waits = new Set<WaitEntry>()
   private readonly scripts = new Map<string, string>()
   private pause: PauseState | undefined
+  private stoppedService: StoppedService | undefined
   private status: 'waiting-for-reproduction' | 'paused' | 'diagnosing' = 'waiting-for-reproduction'
 
   constructor(private readonly runId: string) {}
@@ -99,13 +108,25 @@ export class NodeBackendRuntime implements DebugRuntime {
         const rows = await listProcesses()
         const existing = findServicePids(rows, script, process.pid)
         if (existing.length > 0) {
-          return error(
-            'RUNTIME_UNAVAILABLE',
-            `A normal service for ${script} is already running (pid ${existing.join(', ')}). Stop it first or use a launch configuration that owns the process.`,
-          )
+          const pid = existing[0]
+          if (pid === undefined)
+            return error(
+              'RUNTIME_UNAVAILABLE',
+              `A normal service for ${script} is already running.`,
+            )
+          const command = rows.find((row) => row.pid === pid)?.command ?? ''
+          if (request.stopExisting !== true) {
+            return error(
+              'CONFIRMATION_REQUIRED',
+              `A normal service for ${script} is already running (pid ${pid}${command === '' ? '' : `: ${command}`}). ` +
+                'Show the user this process and its restart command, and after explicit confirmation call debug_start again with "stopExisting": true. The debugger restarts the service on debug_finish.',
+            )
+          }
+          await killProcessPid(pid)
+          this.stoppedService = { pid, command, cwd: dirname(script) }
         }
       } catch {
-        // Process-table reads are best-effort; launch proceeds when unknown.
+        // Process-table reads and best-effort termination never block a launch.
       }
     }
     return new Promise<RuntimeStartOk | DebugRunError>((resolvePromise, rejectPromise) => {
@@ -233,12 +254,36 @@ export class NodeBackendRuntime implements DebugRuntime {
         child.kill('SIGTERM')
       })
     }
+    const restored: string[] = []
+    const couldNotRestore: string[] = []
+    const stopped = this.stoppedService
+    this.stoppedService = undefined
+    if (stopped !== undefined && stopped.command !== '') {
+      try {
+        const revived = spawn(stopped.command, {
+          cwd: stopped.cwd,
+          detached: true,
+          stdio: 'ignore',
+          shell: true,
+        })
+        revived.unref()
+        restored.push(`service ${stopped.pid} restarted: ${stopped.command}`)
+      } catch {
+        couldNotRestore.push(`service ${stopped.pid}: ${stopped.command}`)
+      }
+    }
     return {
       kind: 'ok',
       status: 'finished',
-      restored: [],
-      couldNotRestore: [],
-      summary: `Finished ${outcome}: stopped the Node debug process and released the session.`,
+      restored,
+      couldNotRestore,
+      summary:
+        `Finished ${outcome}: stopped the Node debug process and released the session.` +
+        (stopped === undefined
+          ? ''
+          : couldNotRestore.length > 0
+            ? ` The stopped ordinary service could not be restarted (${couldNotRestore.join('; ')}).`
+            : ` The stopped ordinary service was restarted.`),
     }
   }
 

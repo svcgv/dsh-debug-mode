@@ -1,8 +1,10 @@
+import { spawn } from 'node:child_process'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { NodeBackendRuntime, parseDebuggerWsUrl } from '../../../src/runtime/node-backend.ts'
+import { findServicePids, listProcesses } from '../../../src/runtime/process.ts'
 
 describe('node backend helpers', () => {
   it('extracts the inspector websocket url', () => {
@@ -99,4 +101,97 @@ describe('NodeBackendRuntime integration', () => {
       }
     },
   )
+
+  it(
+    'confirmation-gated stop of an ordinary service and restart on finish',
+    { timeout: 60_000 },
+    async () => {
+      const ordinary = spawn(process.execPath, [file], {
+        cwd: dirname(file),
+        stdio: 'ignore',
+      })
+      try {
+        let port = ''
+        for (let attempt = 0; attempt < 100 && port === ''; attempt += 1) {
+          try {
+            port = (await readFile(join(directory, 'port.txt'), 'utf8')).trim()
+          } catch {
+            await new Promise((ok) => setTimeout(ok, 100))
+          }
+        }
+        expect(port).not.toBe('')
+
+        const runtime = new NodeBackendRuntime('confirm-run')
+        const first = await runtime.start({
+          targets: [{ path: file, startLine: 6, endLine: 6 }],
+          runtime: 'backend',
+        })
+        expect(first.kind).toBe('error')
+        if (first.kind === 'error') expect(first.code).toBe('CONFIRMATION_REQUIRED')
+
+        // The ordinary service is untouched until the caller confirms.
+        expect(isAlive(ordinary.pid ?? -1)).toBe(true)
+
+        const started = await runtime.start({
+          targets: [{ path: file, startLine: 6, endLine: 6 }],
+          runtime: 'backend',
+          stopExisting: true,
+        })
+        if (started.kind !== 'ok') throw new Error(`start failed: ${started.message}`)
+        expect(isAlive(ordinary.pid ?? -1)).toBe(false)
+
+        const finished = await runtime.finish('cancelled')
+        if (finished.kind !== 'ok') throw new Error(`finish failed: ${finished.message}`)
+        expect(finished.restored.join(' ')).toContain('restarted')
+
+        // The revived service re-listens on a fresh port and answers; poll
+        // because the port file is rewritten asynchronously after spawn.
+        let response: Response | null = null
+        for (let attempt = 0; attempt < 100 && response === null; attempt += 1) {
+          let revivedPort = ''
+          try {
+            revivedPort = (await readFile(join(directory, 'port.txt'), 'utf8')).trim()
+          } catch {
+            // not rewritten yet
+          }
+          if (revivedPort !== '') {
+            response = await fetch(`http://127.0.0.1:${revivedPort}/`).catch(() => null)
+          }
+          if (response === null) await new Promise((ok) => setTimeout(ok, 150))
+        }
+        expect(response?.status).toBe(200)
+      } finally {
+        if (ordinary.pid !== undefined) {
+          try {
+            ordinary.kill('SIGKILL')
+          } catch {
+            // already gone
+          }
+        }
+        try {
+          const rows = await listProcesses()
+          for (const pid of findServicePids(rows, file, process.pid)) {
+            if (pid === ordinary.pid) continue
+            try {
+              process.kill(pid, 'SIGKILL')
+            } catch {
+              // already gone
+            }
+          }
+        } catch {
+          // process-table reads are best-effort during teardown
+        }
+      }
+    },
+  )
 })
+
+function isAlive(pid: number): boolean {
+  if (pid <= 0) return false
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch {
+    return false
+  }
+}

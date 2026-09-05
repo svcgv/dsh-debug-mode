@@ -79,6 +79,51 @@ export function windowsKillArgs(pid: number, force: boolean): readonly string[] 
   return force ? ['/PID', String(pid), '/T', '/F'] : ['/PID', String(pid), '/T']
 }
 
+/**
+ * Terminate one process by pid, waiting for exit with a force fallback.
+ * Platform differences live in this adapter: POSIX uses SIGTERM then SIGKILL,
+ * Windows uses taskkill with the process tree.
+ * @param pid - target pid (never the caller's own process).
+ */
+export function killProcessPid(pid: number): Promise<void> {
+  return new Promise((ok) => {
+    if (process.platform === 'win32') {
+      execFile('taskkill', windowsKillArgs(pid, false), (killError) => {
+        if (killError !== null) {
+          execFile('taskkill', windowsKillArgs(pid, true), () => ok())
+          return
+        }
+        ok()
+      })
+      return
+    }
+    try {
+      process.kill(pid, 'SIGTERM')
+    } catch {
+      ok()
+      return
+    }
+    const force = setTimeout(() => {
+      try {
+        process.kill(pid, 'SIGKILL')
+      } catch {
+        // already gone
+      }
+      clearInterval(poll)
+      ok()
+    }, 5_000)
+    const poll = setInterval(() => {
+      try {
+        process.kill(pid, 0)
+      } catch {
+        clearInterval(poll)
+        clearTimeout(force)
+        ok()
+      }
+    }, 200)
+  })
+}
+
 /** Read the current POSIX process table. */
 export function listProcesses(): Promise<ProcessRow[]> {
   return new Promise((ok, fail) => {

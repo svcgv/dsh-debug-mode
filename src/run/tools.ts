@@ -101,6 +101,7 @@ export function parseStartArgs(value: unknown): DebugStartRequest {
     targets: parseTargets(value.targets),
     runtime,
     ...(value.launchId === undefined ? {} : { launchId: asString(value.launchId, 'launchId') }),
+    ...(value.stopExisting === undefined ? {} : { stopExisting: value.stopExisting === true }),
   }
 }
 
@@ -166,6 +167,11 @@ export function debugToolDefinitions(
           },
           runtime: { type: 'string', description: 'Runtime family: auto, frontend, or backend.' },
           launchId: { type: 'string', description: 'Optional launch configuration id.' },
+          stopExisting: {
+            type: 'boolean',
+            description:
+              'Backend only: set true only after showing the user the running process and restart command from a CONFIRMATION_REQUIRED result and receiving explicit confirmation. Stops the ordinary service and restarts it on debug_finish.',
+          },
         },
         required: ['targets', 'runtime'],
         additionalProperties: false,

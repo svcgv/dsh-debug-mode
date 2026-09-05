@@ -51,6 +51,13 @@ export interface DebugStartRequest {
   readonly targets: readonly DebugTarget[]
   readonly runtime: DebugRuntimeMode
   readonly launchId?: string
+  /**
+   * Backend only: when an ordinary service already runs the target script,
+   * true stops it (after the user confirmed the process and restart command
+   * shown by the first attempt) and restarts it on finish. Defaults to false:
+   * the first attempt returns CONFIRMATION_REQUIRED with the process detail.
+   */
+  readonly stopExisting?: boolean
 }
 
 /** Control request payload of debug_control. */
@@ -67,6 +74,7 @@ export type DebugRunErrorCode =
   | 'RUN_ALREADY_ACTIVE'
   | 'NO_ACTIVE_RUN'
   | 'RUNTIME_UNAVAILABLE'
+  | 'CONFIRMATION_REQUIRED'
   | 'INVALID_TARGETS'
   | 'UNSUPPORTED_ACTION'
   | 'UNSUPPORTED_TARGET'

@@ -120,6 +120,30 @@ describe('debug tools', () => {
       runtime: 'frontend',
       launchId: 'x',
     })
+    expect(
+      parseStartArgs({
+        targets: [{ path: 'a', startLine: 1, endLine: 1 }],
+        runtime: 'backend',
+        stopExisting: true,
+      }),
+    ).toMatchObject({ stopExisting: true })
+    expect(
+      parseStartArgs({
+        targets: [{ path: 'a', startLine: 1, endLine: 1 }],
+        runtime: 'backend',
+        stopExisting: false,
+      }),
+    ).toMatchObject({ stopExisting: false })
+    expect(
+      parseStartArgs({
+        targets: [{ path: 'a', startLine: 1, endLine: 1 }],
+        runtime: 'backend',
+        stopExisting: 'yes',
+      }),
+    ).toMatchObject({ stopExisting: false })
+    expect(
+      parseStartArgs({ targets: [{ path: 'a', startLine: 1, endLine: 1 }], runtime: 'backend' }),
+    ).not.toHaveProperty('stopExisting')
     expect(() => parseControlArgs({ action: 5 })).toThrow(/action must be a string/)
     expect(() => parseControlArgs({ action: 'read', cursor: 5 })).toThrow(/cursor must be a string/)
     expect(() => parseControlArgs({ action: 'read', timeoutMs: '1' })).toThrow(
