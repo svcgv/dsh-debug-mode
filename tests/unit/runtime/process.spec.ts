@@ -27,6 +27,13 @@ describe('process discovery helpers', () => {
       isOrdinaryServiceCommand('python -m debugpy --listen 1 /srv/app.py', '/srv/app.py'),
     ).toBe(false)
     expect(isOrdinaryServiceCommand('node /other.js', '/srv/app.js')).toBe(false)
+    // A service started from its project directory with a relative script.
+    expect(isOrdinaryServiceCommand('node sample-service.js', '/srv/sample-service.js')).toBe(true)
+    expect(isOrdinaryServiceCommand('python sample-service.py', '/srv/sample-service.py')).toBe(
+      true,
+    )
+    expect(isOrdinaryServiceCommand('node other.js', '/srv/sample-service.js')).toBe(false)
+    expect(isOrdinaryServiceCommand('ruby sample-service.js', '/srv/sample-service.js')).toBe(false)
   })
 
   it('builds windows process commands and parses json output', () => {

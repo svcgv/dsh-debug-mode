@@ -8,7 +8,7 @@
  */
 
 import { execFile } from 'node:child_process'
-import { resolve } from 'node:path'
+import { basename, resolve } from 'node:path'
 
 /** One discovered process row. */
 export interface ProcessRow {
@@ -33,8 +33,13 @@ export function parsePsRows(output: string): ProcessRow[] {
 export function isOrdinaryServiceCommand(command: string, scriptPath: string): boolean {
   if (command.includes('--inspect')) return false
   if (command.includes('debugpy --listen')) return false
-  if (!command.includes(scriptPath)) return false
-  return true
+  const resolved = resolve(scriptPath)
+  if (command.includes(resolved)) return true
+  // A service launched from its project directory with a relative script
+  // (e.g. `node sample-service.js`) never contains the absolute path, so
+  // fall back to the script basename for interpreter commands.
+  const base = basename(resolved)
+  return /(?:^|\s)node(?:\.exe)?(?:\s|$)|(?:^|\s)python/.test(command) && command.includes(base)
 }
 
 /** Find ordinary service pids running the resolved script. */
