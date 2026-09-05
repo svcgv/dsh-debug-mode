@@ -91,4 +91,48 @@ describe('FrontendRuntime', () => {
     expect(started).toMatchObject({ kind: 'error', code: 'INVALID_TARGETS' })
     await expect(readFile(file, 'utf8')).resolves.toBe(SOURCE)
   })
+
+  it('requires the user to pick when a lan scope has several addresses', async () => {
+    const runtime = new FrontendRuntime('scope-multi', [
+      { family: 'IPv4', address: '192.168.1.7', internal: false },
+      { family: 'IPv4', address: '10.0.0.8', internal: false },
+    ])
+    const started = await runtime.start({
+      targets: [{ path: file, startLine: 2, endLine: 6 }],
+      runtime: 'frontend',
+      reproductionScope: 'lan',
+    })
+    expect(started).toMatchObject({ kind: 'error', code: 'CONFIRMATION_REQUIRED' })
+    if (started.kind === 'error') {
+      expect(started.message).toContain('192.168.1.7')
+      expect(started.message).toContain('10.0.0.8')
+      expect(started.message).toContain('lanAddress')
+    }
+    await expect(readFile(file, 'utf8')).resolves.toBe(SOURCE)
+  })
+
+  it('uses the chosen lan address and advertises loopback for local scope', async () => {
+    const views = [{ family: 'IPv4', address: '192.168.1.7', internal: false }]
+    const lan = new FrontendRuntime('scope-lan-one', views)
+    const lanStarted = await lan.start({
+      targets: [{ path: file, startLine: 2, endLine: 6 }],
+      runtime: 'frontend',
+      reproductionScope: 'lan',
+    })
+    if (lanStarted.kind !== 'ok') throw new Error(`lan start failed: ${lanStarted.message}`)
+    expect(lanStarted.notice).toContain('192.168.1.7')
+    await lan.finish('cancelled')
+    await expect(readFile(file, 'utf8')).resolves.toBe(SOURCE)
+
+    const local = new FrontendRuntime('scope-local')
+    const localStarted = await local.start({
+      targets: [{ path: file, startLine: 2, endLine: 6 }],
+      runtime: 'frontend',
+      reproductionScope: 'local',
+    })
+    if (localStarted.kind !== 'ok') throw new Error(`local start failed: ${localStarted.message}`)
+    expect(localStarted.notice).toContain('127.0.0.1')
+    await local.finish('cancelled')
+    await expect(readFile(file, 'utf8')).resolves.toBe(SOURCE)
+  })
 })

@@ -144,6 +144,34 @@ describe('debug tools', () => {
     expect(
       parseStartArgs({ targets: [{ path: 'a', startLine: 1, endLine: 1 }], runtime: 'backend' }),
     ).not.toHaveProperty('stopExisting')
+    expect(
+      parseStartArgs({
+        targets: [{ path: 'a', startLine: 1, endLine: 1 }],
+        runtime: 'frontend',
+        reproductionScope: 'lan',
+      }),
+    ).toMatchObject({ reproductionScope: 'lan' })
+    expect(
+      parseStartArgs({
+        targets: [{ path: 'a', startLine: 1, endLine: 1 }],
+        runtime: 'frontend',
+        lanAddress: '192.168.1.7',
+      }),
+    ).toMatchObject({ lanAddress: '192.168.1.7' })
+    expect(() =>
+      parseStartArgs({
+        targets: [{ path: 'a', startLine: 1, endLine: 1 }],
+        runtime: 'frontend',
+        reproductionScope: 'wan',
+      }),
+    ).toThrow(/reproductionScope must be/)
+    expect(() =>
+      parseStartArgs({
+        targets: [{ path: 'a', startLine: 1, endLine: 1 }],
+        runtime: 'frontend',
+        lanAddress: 7,
+      }),
+    ).toThrow(/lanAddress must be a string/)
     expect(() => parseControlArgs({ action: 5 })).toThrow(/action must be a string/)
     expect(() => parseControlArgs({ action: 'read', cursor: 5 })).toThrow(/cursor must be a string/)
     expect(() => parseControlArgs({ action: 'read', timeoutMs: '1' })).toThrow(

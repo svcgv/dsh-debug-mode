@@ -15,6 +15,9 @@ export interface DebugTarget {
 /** Which runtime family a debug session targets. */
 export type DebugRuntimeMode = 'auto' | 'frontend' | 'backend'
 
+/** Where the user will reproduce, inferred from their description. */
+export type DebugReproductionScope = 'local' | 'lan' | 'auto'
+
 /** Resolved runtime kind after classification. */
 export type DebugRunKind = 'frontend' | 'backend'
 
@@ -58,6 +61,15 @@ export interface DebugStartRequest {
    * the first attempt returns CONFIRMATION_REQUIRED with the process detail.
    */
   readonly stopExisting?: boolean
+  /**
+   * Frontend: reproduction scope inferred from the user's description. local
+   * reports to loopback only; lan reports to a LAN address (the user picks
+   * when several exist, via lanAddress on the confirmed retry); auto keeps
+   * loopback-first with automatic rotation.
+   */
+  readonly reproductionScope?: DebugReproductionScope
+  /** Frontend: the LAN address the user chose after a selection prompt. */
+  readonly lanAddress?: string
 }
 
 /** Control request payload of debug_control. */

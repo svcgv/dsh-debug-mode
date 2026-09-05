@@ -97,11 +97,24 @@ export function parseStartArgs(value: unknown): DebugStartRequest {
   if (runtime !== 'frontend' && runtime !== 'backend' && runtime !== 'auto') {
     throw new Error('runtime must be "auto", "frontend", or "backend"')
   }
+  const reproductionScope = value.reproductionScope
+  if (
+    reproductionScope !== undefined &&
+    reproductionScope !== 'local' &&
+    reproductionScope !== 'lan' &&
+    reproductionScope !== 'auto'
+  ) {
+    throw new Error('reproductionScope must be "local", "lan", or "auto"')
+  }
   return {
     targets: parseTargets(value.targets),
     runtime,
     ...(value.launchId === undefined ? {} : { launchId: asString(value.launchId, 'launchId') }),
     ...(value.stopExisting === undefined ? {} : { stopExisting: value.stopExisting === true }),
+    ...(reproductionScope === undefined ? {} : { reproductionScope }),
+    ...(value.lanAddress === undefined
+      ? {}
+      : { lanAddress: asString(value.lanAddress, 'lanAddress') }),
   }
 }
 
@@ -157,7 +170,7 @@ export function debugToolDefinitions(
     {
       name: 'debug_start',
       description:
-        'Start a debug run for located source ranges. Frontend runs instrument the located statements and open a trace listener; backend runs prepare a debugger launch.',
+        'Start a debug run for located source ranges. Frontend runs instrument the located statements and open a trace listener; backend runs prepare a debugger launch. Set reproductionScope from the user\'s description: "local" when they reproduce on this machine, "lan" when they reproduce on another device over the LAN (if several LAN addresses exist the first call returns CONFIRMATION_REQUIRED with the candidates — show them and ask the user to choose, then retry with the chosen lanAddress). Omit it when the repro location is unknown (auto keeps loopback-first rotation).',
       parameters: {
         type: 'object',
         properties: {
@@ -171,6 +184,17 @@ export function debugToolDefinitions(
             type: 'boolean',
             description:
               'Backend only: set true only after showing the user the running process and restart command from a CONFIRMATION_REQUIRED result and receiving explicit confirmation. Stops the ordinary service and restarts it on debug_finish.',
+          },
+          reproductionScope: {
+            type: 'string',
+            enum: ['local', 'lan', 'auto'],
+            description:
+              "Frontend: reproduction scope inferred from the user's description. local = this machine (127.0.0.1), lan = another device over the LAN, auto = loopback first with automatic LAN rotation.",
+          },
+          lanAddress: {
+            type: 'string',
+            description:
+              'Frontend: the LAN address the user explicitly chose when a lan-scope start returned CONFIRMATION_REQUIRED with several candidates. Only set it after the user picked one.',
           },
         },
         required: ['targets', 'runtime'],

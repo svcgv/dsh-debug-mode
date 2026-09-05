@@ -32,7 +32,7 @@ import type {
   DebugStartRequest,
   DebugTarget,
 } from '../run/types.ts'
-import { endpointCandidates } from './endpoints.ts'
+import { resolveEndpointPlan } from './endpoints.ts'
 import { createTraceRuntimeSource } from './source.ts'
 
 interface ManagedFile {
@@ -69,10 +69,18 @@ export class FrontendRuntime implements DebugRuntime {
   private runtimeDirectory = ''
   private runtimePath = ''
   private endpoints: readonly string[] = []
+  private endpointNotice = ''
   private status: 'waiting-for-reproduction' | 'paused' | 'diagnosing' = 'waiting-for-reproduction'
   private endpointsRotated = false
 
-  constructor(runId: string) {
+  constructor(
+    runId: string,
+    private readonly interfaceViews?: ReadonlyArray<{
+      readonly family: string
+      readonly address: string
+      readonly internal: boolean
+    }>,
+  ) {
     this.runId = runId
   }
 
@@ -89,6 +97,37 @@ export class FrontendRuntime implements DebugRuntime {
     }
     try {
       await this.startListener()
+      const views = this.collectInterfaceViews()
+      const plan = resolveEndpointPlan(
+        views,
+        this.port,
+        request.reproductionScope ?? 'auto',
+        request.lanAddress,
+      )
+      if (plan.kind === 'lan-selection-required') {
+        await this.closeListener()
+        return error(
+          'CONFIRMATION_REQUIRED',
+          `The reproduction target is another device, and this machine has ${plan.candidates.length} LAN addresses: ${plan.candidates.join(', ')}. ` +
+            'Show the user the candidates, ask which one the device can reach, and call debug_start again with "lanAddress": "<chosen>".',
+        )
+      }
+      if (plan.kind === 'no-lan') {
+        await this.closeListener()
+        return error(
+          'RUNTIME_UNAVAILABLE',
+          'The reproduction target is another device, but this machine has no non-loopback IPv4 address to advertise.',
+        )
+      }
+      if (plan.kind === 'invalid-lan') {
+        await this.closeListener()
+        return error(
+          'INVALID_TARGETS',
+          `lanAddress ${plan.requested} is not a current LAN address of this machine (${plan.candidates.join(', ') || 'none'}).`,
+        )
+      }
+      this.endpoints = plan.endpoints
+      this.endpointNotice = plan.notice
       const firstDirectory = dirname(resolve(resolvedTargets[0]?.path ?? '.'))
       this.runtimeDirectory = join(firstDirectory, '.dsh-debug', this.runId)
       this.runtimePath = join(this.runtimeDirectory, 'trace-runtime.js')
@@ -127,10 +166,11 @@ export class FrontendRuntime implements DebugRuntime {
       }
       await Promise.all(pendingWrites)
       const classic = this.files.some((file) => file.classic)
+      const location = this.endpointNotice === '' ? '' : `${this.endpointNotice} `
       const notice = classic
-        ? `Instrumented ${resolvedTargets.length} file(s) and started the trace listener at ${this.endpoints[0]}. ` +
+        ? `${location}Instrumented ${resolvedTargets.length} file(s) and started the trace listener at ${this.endpoints[0]}. ` +
           'The project has classic scripts, so load the trace runtime file before the app runs, then reproduce the issue.'
-        : `Instrumented ${resolvedTargets.length} file(s) and started the trace listener at ${this.endpoints[0]}. Reproduce the issue now.`
+        : `${location}Instrumented ${resolvedTargets.length} file(s) and started the trace listener at ${this.endpoints[0]}. Reproduce the issue now.`
       return { kind: 'ok', kindOfRun: 'frontend', status: 'waiting-for-reproduction', notice }
     } catch (cause) {
       await this.rollback()
@@ -275,13 +315,22 @@ export class FrontendRuntime implements DebugRuntime {
       throw new Error('listener did not bind a TCP port')
     this.server = server
     this.port = address.port
+  }
+
+  /** Shape the current interface table into endpoint-plan input. Tests inject
+   * a fixed table through the constructor seam. */
+  private collectInterfaceViews(): ReadonlyArray<{
+    readonly family: string
+    readonly address: string
+    readonly internal: boolean
+  }> {
+    if (this.interfaceViews !== undefined) return this.interfaceViews
     const ifaces = Object.values(networkInterfaces()).flatMap((entries) => entries ?? [])
-    const views = ifaces.map((entry) => ({
+    return ifaces.map((entry) => ({
       family: entry.family,
       address: entry.address,
       internal: entry.internal,
     }))
-    this.endpoints = endpointCandidates(views, this.port)
   }
 
   private async rotateRuntimeEndpoints(): Promise<void> {
