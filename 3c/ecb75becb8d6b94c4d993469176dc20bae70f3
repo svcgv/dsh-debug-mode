@@ -1,0 +1,29 @@
+src/run/tools.ts
+  s_182fd8df93af28::t_5727fd7042e4ea 104,170-174
+src/run/types.ts
+  s_182fd8df93af28::t_aff09be646274a 54-60,77
+src/runtime/node-backend.ts
+  s_182fd8df93af28::t_98a86074f211c2 13,48-55,90,111-126,129,257-274,278-286
+src/runtime/process.ts
+  s_182fd8df93af28::t_9aa95fedaee20f 82-126
+tests/unit/runtime/node-backend.spec.ts
+  s_182fd8df93af28::t_daaf7b8734967b 1,4,7,104-186,188-197
+tests/unit/runtime/process.spec.ts
+  s_182fd8df93af28::t_58a862b627a132 5,49-63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "3cecb75becb8d6b94c4d993469176dc20bae70f3",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "unknown"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
