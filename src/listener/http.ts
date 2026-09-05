@@ -37,7 +37,14 @@ function tokensEqual(expected: string, actual: string): boolean {
 
 function send(res: ServerResponse, status: number, body: Record<string, unknown>): void {
   const text = JSON.stringify(body)
-  res.writeHead(status, { 'content-type': 'application/json' })
+  res.writeHead(status, {
+    'content-type': 'application/json',
+    // The in-app trace runtime posts from the instrumented page's origin to
+    // this listener (a different port), so every response must permit the
+    // cross-origin read. Authenticity comes from the per-run token in the
+    // body, not from the origin.
+    'access-control-allow-origin': '*',
+  })
   res.end(text)
 }
 
@@ -51,6 +58,16 @@ export function createIngestHandler(
   const maxBodyBytes = options.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES
   const maxBatch = options.maxBatch ?? DEFAULT_MAX_BATCH
   return (req, res) => {
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204, {
+        'access-control-allow-origin': '*',
+        'access-control-allow-methods': 'POST, OPTIONS',
+        'access-control-allow-headers': 'content-type',
+        'access-control-max-age': '600',
+      })
+      res.end()
+      return
+    }
     if (req.method !== 'POST') {
       send(res, 405, { ok: false, error: 'method-not-allowed' })
       return

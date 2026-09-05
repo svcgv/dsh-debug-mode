@@ -76,6 +76,33 @@ describe('ingest handler', () => {
     expect(store.count).toBe(2)
   })
 
+  it('answers cross-origin preflight and tags responses with CORS headers', async () => {
+    const preflight = await fetch(`http://127.0.0.1:${port}/ingest`, {
+      method: 'OPTIONS',
+      headers: {
+        origin: 'http://127.0.0.1:8137',
+        'access-control-request-method': 'POST',
+        'access-control-request-headers': 'content-type',
+      },
+    })
+    expect(preflight.status).toBe(204)
+    expect(preflight.headers.get('access-control-allow-origin')).toBe('*')
+    expect(preflight.headers.get('access-control-allow-methods')).toContain('POST')
+    expect(preflight.headers.get('access-control-allow-headers')).toContain('content-type')
+
+    const response = await post('/ingest', {
+      token,
+      events: [{ kind: 'heartbeat', runId: 'r', ts: 1 }],
+    })
+    expect(response.status).toBe(200)
+    const cors = await fetch(`http://127.0.0.1:${port}/ingest`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ token, events: [{ kind: 'heartbeat', runId: 'r', ts: 1 }] }),
+    })
+    expect(cors.headers.get('access-control-allow-origin')).toBe('*')
+  })
+
   it('rejects payloads above the configured body cap', async () => {
     const small = new TraceStore()
     const smallServer = createServer(createIngestHandler({ store: small, token, maxBodyBytes: 16 }))
