@@ -1,0 +1,21 @@
+src/runtime/node-backend.ts
+  s_182fd8df93af28::t_04342e677f2007 62-73,119,124,127-130,138,147,157,166,250-260
+tests/unit/runtime/node-backend.spec.ts
+  s_182fd8df93af28::t_590575e626a8e2 4,20,45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "b6cb2c79b904341d9d3a62dabd03644b40c358f5",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "unknown"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
