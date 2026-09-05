@@ -21,4 +21,4 @@ Debug 激活状态不写自定义事件，只从已知的、仓库内事件 `com
 
 - 无需自定义事件注册，也没有“必须 ignorable”的兼容风险。
 - Debug 在进程内立即生效，不提供 plan 那样的“下一个 accepted pre-step 再提交”的延迟语义；命令在两次请求之间由用户执行，因此影响有限。
-- 与 plan 的互斥由 Host `/debug` 处理器在可用的 agent 作用域 `planMode` 服务上执行 `set(false)` 保证；反向（用户先进入 plan）通过客户端选择器先结束 Debug 的顺序避免。
+- 与 plan 的互斥由 Host 双向保证：进入 Debug 时 `/debug` 处理器在可用的 agent 作用域 `planMode` 服务上执行 `set(false)`；反向（用户先进入 plan）由 debug 投影折叠原生 `plan/mode` 激活事件实现——plan 一旦 durable 生效，debug 投影提交 inactive 并清空在途 `/debug` 选择，之后保持关闭直到用户重新 `/debug`。两个方向都不依赖客户端选择器的顺序规避。

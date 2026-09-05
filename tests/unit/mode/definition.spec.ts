@@ -16,6 +16,20 @@ describe('debug projection definition', () => {
     expect(next.running?.wanted).toBe(true)
   })
 
+  it('forwards plan/mode activation so plan entry exits debug', () => {
+    const definition = buildDebugProjectionDefinition()
+    const on = definition.apply(
+      { active: true, running: null },
+      {
+        type: 'plan/mode',
+        data: { active: true },
+      },
+    )
+    expect(on).toEqual({ active: false, running: null })
+    const off = definition.apply(on, { type: 'plan/mode', data: { active: false } })
+    expect(off).toEqual({ active: false, running: null })
+  })
+
   it('validates the wire view schema against the harness view handoff', () => {
     const definition = buildDebugProjectionDefinition()
     const state = { active: true, running: null as { commandId: string; wanted: boolean } | null }

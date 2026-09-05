@@ -18,6 +18,9 @@ function runEvent(commandId: string, args: string) {
 function doneEvent(commandId: string, kind: 'success' | 'error') {
   return { type: 'command/done', data: { commandId, kind } }
 }
+function planModeEvent(active: boolean) {
+  return { type: 'plan/mode', data: { active } }
+}
 
 describe('debug mode fold', () => {
   it('starts inactive with no running command', () => {
@@ -33,6 +36,50 @@ describe('debug mode fold', () => {
     state = applyDebugEvent(state, doneEvent('c1', 'success'))
     expect(state).toEqual({ active: true, running: null })
     expect(viewDebugProjection(state)).toEqual({ active: true, pending: false })
+  })
+
+  it('plan activation exits committed debug mode durably', () => {
+    let state: DebugUnitState = { active: true, running: null }
+    state = applyDebugEvent(state, planModeEvent(true))
+    expect(state).toEqual({ active: false, running: null })
+    expect(viewDebugProjection(state)).toEqual({ active: false, pending: false })
+  })
+
+  it('plan activation on an inactive session stays inactive', () => {
+    let state = initDebugUnitState()
+    state = applyDebugEvent(state, planModeEvent(true))
+    expect(state).toEqual(initDebugUnitState())
+  })
+
+  it('plan activation cancels an in-flight /debug selection', () => {
+    let state = initDebugUnitState()
+    state = applyDebugEvent(state, runEvent('c12', ' inspect checkout '))
+    expect(state.running).toEqual({ commandId: 'c12', wanted: true })
+    state = applyDebugEvent(state, planModeEvent(true))
+    expect(state).toEqual({ active: false, running: null })
+  })
+
+  it('leaving plan mode does not resurrect debug mode', () => {
+    let state: DebugUnitState = { active: true, running: null }
+    state = applyDebugEvent(state, planModeEvent(true))
+    state = applyDebugEvent(state, planModeEvent(false))
+    expect(state).toEqual({ active: false, running: null })
+  })
+
+  it('a later /debug command re-enters debug after plan activation', () => {
+    let state: DebugUnitState = { active: true, running: null }
+    state = applyDebugEvent(state, planModeEvent(true))
+    state = applyDebugEvent(state, runEvent('c13', 'why'))
+    state = applyDebugEvent(state, doneEvent('c13', 'success'))
+    expect(state).toEqual({ active: true, running: null })
+  })
+
+  it('ignores malformed plan/mode records', () => {
+    let state: DebugUnitState = { active: true, running: null }
+    state = applyDebugEvent(state, { type: 'plan/mode', data: { active: 'yes' } })
+    expect(state).toEqual({ active: true, running: null })
+    state = applyDebugEvent(state, { type: 'plan/mode', data: {} })
+    expect(state).toEqual({ active: true, running: null })
   })
 
   it('commits an off selection and clears pending', () => {

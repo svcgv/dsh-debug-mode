@@ -30,6 +30,8 @@ export interface DebugFoldEvent {
     readonly name?: unknown
     readonly args?: unknown
     readonly kind?: unknown
+    /** Payload of the in-repo `plan/mode` event, folded for mode exclusivity. */
+    readonly active?: unknown
   }
 }
 

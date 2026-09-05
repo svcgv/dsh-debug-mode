@@ -1,11 +1,14 @@
 /**
- * Pure event fold for the debug-mode projection: `/debug` and `/debug off`
- * command records are the ONLY durable inputs. The fold deliberately writes no
- * custom session event because an out-of-repo plugin event would be refused by
- * the harness persistence seam unless its envelope carried an ignorable marker
- * that the in-process append API cannot set. Command records are known,
- * in-repo event types, so the derived state survives restart, resume, and fork
- * without a custom vocabulary.
+ * Pure event fold for the debug-mode projection. `/debug` and `/debug off`
+ * command records are the primary durable inputs, and the in-repo `plan/mode`
+ * activation event is folded so Normal / Plan / Debug stay mutually exclusive
+ * in both directions: entering plan mode durably exits debug mode, mirroring
+ * the `/debug` handler calling `planMode.set(false)`. The fold deliberately
+ * writes no custom session event because an out-of-repo plugin event would be
+ * refused by the harness persistence seam unless its envelope carried an
+ * ignorable marker that the in-process append API cannot set. The folded
+ * inputs are known in-repo event types, so the derived state survives
+ * restart, resume, and fork without a custom vocabulary.
  *
  * @module dsh-debug-mode/mode/fold
  */
@@ -48,6 +51,11 @@ function isDebugDone(event: DebugFoldEvent): boolean {
   )
 }
 
+/** Whether the native plan service durably committed plan mode on. */
+function isPlanActivation(event: DebugFoldEvent): boolean {
+  return event.type === 'plan/mode' && isRecord(event.data) && event.data.active === true
+}
+
 /** Whether the raw command line selects `off`. */
 export function isOffCommand(raw: string): boolean {
   return raw.trim() === 'off'
@@ -55,6 +63,9 @@ export function isOffCommand(raw: string): boolean {
 
 /** Pure transition: previous state + one committed event. */
 export function applyDebugEvent(state: DebugUnitState, event: DebugFoldEvent): DebugUnitState {
+  // Plan activation wins over any in-flight debug selection: once plan mode is
+  // durably on, debug is off and stays off until a later `/debug` command.
+  if (isPlanActivation(event)) return { active: false, running: null }
   if (isDebugRun(event)) {
     const commandId = typeof event.data.commandId === 'string' ? event.data.commandId : ''
     const wanted = !isOffCommand(String(event.data.args))

@@ -63,6 +63,7 @@ function asDebugEvent(value: unknown): DebugFoldEvent | undefined {
       name: data.name,
       args: data.args,
       kind: data.kind,
+      active: data.active,
     },
   }
 }

@@ -61,7 +61,7 @@ Debug 命令、模式投影、UI 接管、埋点、监听器、调试协议和�
 - 创建兼容 DeepSeek Harness `>=0.1.3-alpha.1 <0.1.4` 的独立 Bundle。
 - package 同时提供 Host 与 Browser 入口，并通过 Bundle patch 替换 Web profile 的 `ui-plan` roster 行。
 - 保留官方 `ui-plan` Plan chip，Debug 开关挂载到 `conversation.input.left` list seat。
-- Plan 与 Debug 互斥由 Host 保证（进入 Debug 先 `planMode.set(false)`）；原生 `/plan` 与 plan review 行为保持不变。
+- Plan 与 Debug 互斥由 Host 双向保证：进入 Debug 先 `planMode.set(false)`；debug 投影折叠原生 `plan/mode` 激活事件，进入 Plan 即提交 Debug 关闭（见 ADR 0003）。原生 `/plan` 与 plan review 行为保持不变。
 - 增加 `/debug [message]`、`/debug off` 命令和 `DebugProjection`；状态从 `command/run`/`command/done` 折叠，不写自定义 session 事件（见 ADR 0003）。
 
 ### 模型接口
