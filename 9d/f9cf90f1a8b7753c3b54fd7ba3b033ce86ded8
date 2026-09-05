@@ -1,0 +1,31 @@
+docs/adr/0003-external-mode-events.md
+  s_64b8c1a904694c::t_965b2bef048d3d 24
+docs/implementation-plan.md
+  s_64b8c1a904694c::t_c51ce4edd419d4 64
+src/mode/fold.ts
+  s_64b8c1a904694c::t_348bc46ccecf0e 2-11,54-58,66-68
+src/mode/host.ts
+  s_64b8c1a904694c::t_84f7f57a767ebc 66
+src/mode/types.ts
+  s_64b8c1a904694c::t_4b9a0035c49610 33-34
+tests/unit/mode/definition.spec.ts
+  s_64b8c1a904694c::t_59494df028f2e9 19-32
+tests/unit/mode/fold.spec.ts
+  s_64b8c1a904694c::t_de90982d4d619e 21-23,41-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "9df9cf90f1a8b7753c3b54fd7ba3b033ce86ded8",
+  "prompts": {},
+  "sessions": {
+    "s_64b8c1a904694c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a07001-a3a9-7bf2-a5f4-61a46bf01633",
+        "model": "unknown"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
