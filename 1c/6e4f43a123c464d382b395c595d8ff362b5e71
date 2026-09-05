@@ -1,0 +1,21 @@
+README.md
+  s_182fd8df93af28::t_2c607b774d34ba 7
+docs/implementation-plan.md
+  s_182fd8df93af28::t_845e54ecbd6149 120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "1c6e4f43a123c464d382b395c595d8ff362b5e71",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "unknown"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
