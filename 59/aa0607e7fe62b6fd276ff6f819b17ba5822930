@@ -1,0 +1,26 @@
+src/runtime/cdp.ts
+  s_182fd8df93af28::t_33272de1731491 65,117
+  s_182fd8df93af28::t_0b4570d3916707 16
+src/runtime/node-backend.ts
+  s_182fd8df93af28::t_ff2ad2a6e50a8e 183-189,241,286-310
+  s_182fd8df93af28::t_4fac211b38b541 311
+tests/unit/runtime/node-backend.spec.ts
+  s_182fd8df93af28::t_abdf09287ce149 78-79,83,87-90
+  s_182fd8df93af28::t_6c099169b06591 54-55,57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "59aa0607e7fe62b6fd276ff6f819b17ba5822930",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
