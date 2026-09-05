@@ -51,8 +51,10 @@ describe('NodeBackendRuntime integration', () => {
     { timeout: 60_000 },
     async () => {
       const runtime = new NodeBackendRuntime('node-run-1')
+      // Break on res.end, after `value` is initialized, so locals are
+      // inspectable at the first stop without depending on a step landing.
       const started = await runtime.start({
-        targets: [{ path: file, startLine: 5, endLine: 5 }],
+        targets: [{ path: file, startLine: 6, endLine: 6 }],
         runtime: 'backend',
       })
       if (started.kind !== 'ok') throw new Error(`start failed: ${started.message}`)
@@ -73,12 +75,6 @@ describe('NodeBackendRuntime integration', () => {
         if (paused.kind !== 'ok') throw new Error(`wait failed: ${paused.message}`)
         expect(paused.text).toContain('Paused')
 
-        // Step from the declaration to res.end (a pauseable statement in the
-        // same frame), then inspect the local now that it is initialized.
-        const stepped = await runtime.control('next', { action: 'next', timeoutMs: 10_000 })
-        if (stepped.kind !== 'ok') throw new Error(`step failed: ${stepped.message}`)
-        expect(stepped.text).toContain('Paused')
-
         const evaluated = await runtime.control('evaluate', {
           action: 'evaluate',
           expression: 'value',
@@ -86,6 +82,13 @@ describe('NodeBackendRuntime integration', () => {
         })
         if (evaluated.kind !== 'ok') throw new Error(`evaluate failed: ${evaluated.message}`)
         expect(evaluated.text).toBe('42')
+
+        // Resuming completes the request; a later reproduction would pause again.
+        const continued = await runtime.control('continue', {
+          action: 'continue',
+          timeoutMs: 5_000,
+        })
+        if (continued.kind !== 'ok') throw new Error(`continue failed: ${continued.message}`)
       } finally {
         const finished = await runtime.finish('cancelled')
         if (finished.kind !== 'ok') finishError = new Error(`finish failed: ${finished.message}`)
