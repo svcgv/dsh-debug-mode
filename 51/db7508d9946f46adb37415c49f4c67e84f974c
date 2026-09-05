@@ -1,0 +1,21 @@
+src/listener/http.ts
+  s_182fd8df93af28::t_5519bede59bc55 40-47,61-70
+tests/unit/listener/http.spec.ts
+  s_182fd8df93af28::t_352e3f558ebbc6 79-105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "51db7508d9946f46adb37415c49f4c67e84f974c",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "unknown"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
