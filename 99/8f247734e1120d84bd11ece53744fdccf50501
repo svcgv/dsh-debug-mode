@@ -1,0 +1,21 @@
+README.md
+  s_182fd8df93af28::t_33a4b0070c104d 7,30
+docs/implementation-plan.md
+  s_182fd8df93af28::t_e03de14fdbf415 123
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "998f247734e1120d84bd11ece53744fdccf50501",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
