@@ -4,7 +4,7 @@ DeepSeek Harness 的 Debug Mode Bundle，目标是在 Web composer 中提供 Nor
 
 ## 当前状态
 
-阶段一工程规范与质量门禁已完成；阶段二功能已实现主体：模式控制与 Debug/Normal 开关、`/debug` 命令与投影、前端 Listener 与插桩、Node/CDP 与 Python/DAP 后端、进程辅助与清理工具。浏览器验收（2026-09-05，Edge + 本地 Harness Web）已确认：插件 bundle 能正常加载（不再出现 "加载 plugin 失败"），composer 显示 Debug/标准 开关，点击可在标准↔调试间往返切换且投影状态正确持久化、控制台零报错。完整 agent 复现（埋点证据、真实后端断点、LAN 切换等）仍待闭环；跨平台 CI 已在 GitHub Actions 全绿（ubuntu/windows/macos，见下方说明）。
+阶段一工程规范与质量门禁已完成；阶段二功能已实现主体：模式控制与 Debug/Normal 开关、`/debug` 命令与投影、前端 Listener 与插桩、Node/CDP 与 Python/DAP 后端、进程辅助与清理工具。浏览器验收（2026-09-05，Edge + 本地 Harness Web）已确认：插件 bundle 能正常加载（不再出现 "加载 plugin 失败"），composer 显示 Debug/标准 开关，点击可在标准↔调试间往返切换且投影状态正确持久化、控制台零报错。前端埋点真实链路（instrument→listener→带行号日志→finish 恢复）与 Node/CDP、Python/debugpy 真实断点均已本地闭环；依赖模型调用的浏览器内 agent 取证复现与真实 Flutter/LAN 人工复现仍待闭环；跨平台 CI 已在 GitHub Actions 全绿。
 
 - [本地实施计划](docs/implementation-plan.md)
 - [架构规范](docs/architecture.md)
