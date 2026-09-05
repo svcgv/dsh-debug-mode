@@ -59,6 +59,18 @@ function sleep(ms: number): Promise<void> {
   return new Promise((ok) => setTimeout(ok, ms))
 }
 
+/** Best-effort terminate of a child this runtime spawned. Fire-and-forget:
+ * SIGTERM first, SIGKILL after a grace period. Only ever called on failure
+ * paths where the child cannot become a useful debug session. */
+function terminateSpawnedChild(child: ChildProcess): void {
+  if (child.exitCode !== null || child.signalCode !== null) return
+  child.kill('SIGTERM')
+  const force = setTimeout(() => {
+    if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL')
+  }, 5_000)
+  child.once('exit', () => clearTimeout(force))
+}
+
 /** One running Node debug session for a long-lived service. */
 export class NodeBackendRuntime implements DebugRuntime {
   readonly kind = 'backend' as const
@@ -104,14 +116,18 @@ export class NodeBackendRuntime implements DebugRuntime {
       this.child = child
       let stderr = ''
       const failTimer = setTimeout(() => {
-        cleanup()
+        cleanup(true)
         resolvePromise(
           error('INVALID_TARGETS', 'The Node process did not open an inspector within 15 seconds.'),
         )
       }, 15_000)
-      const cleanup = (): void => {
+      const cleanup = (terminate: boolean): void => {
         clearTimeout(failTimer)
         child.stderr?.removeAllListeners()
+        if (terminate) {
+          this.child = undefined
+          terminateSpawnedChild(child)
+        }
       }
       child.stderr?.on('data', (chunk: Buffer) => {
         stderr += chunk.toString('utf8')
@@ -119,7 +135,7 @@ export class NodeBackendRuntime implements DebugRuntime {
         if (wsUrl === undefined) return
         void this.configure(wsUrl, request).then(
           () => {
-            cleanup()
+            cleanup(false)
             resolvePromise({
               kind: 'ok',
               kindOfRun: 'backend',
@@ -128,7 +144,7 @@ export class NodeBackendRuntime implements DebugRuntime {
             })
           },
           (cause: unknown) => {
-            cleanup()
+            cleanup(true)
             const message = cause instanceof Error ? cause.message : String(cause)
             resolvePromise(
               error('INVALID_TARGETS', `Could not attach the Node debugger: ${message}`),
@@ -138,7 +154,7 @@ export class NodeBackendRuntime implements DebugRuntime {
       })
       child.once('exit', (code) => {
         if (code === null) return
-        cleanup()
+        cleanup(false)
         resolvePromise(
           error(
             'INVALID_TARGETS',
@@ -147,7 +163,7 @@ export class NodeBackendRuntime implements DebugRuntime {
         )
       })
       child.once('error', (cause) => {
-        cleanup()
+        cleanup(true)
         rejectPromise(cause)
       })
     })
@@ -231,7 +247,17 @@ export class NodeBackendRuntime implements DebugRuntime {
     const client = new CdpClient({ send: (data) => socket.send(data), close: () => socket.close() })
     await new Promise<void>((ok, fail) => {
       socket.addEventListener('open', () => ok(), { once: true })
-      socket.addEventListener('error', () => fail(new Error('websocket error')), { once: true })
+      socket.addEventListener(
+        'error',
+        (event) => {
+          const detail =
+            typeof event === 'object' && event !== null && 'message' in event
+              ? String((event as { message?: unknown }).message)
+              : 'no detail'
+          fail(new Error(`websocket error: ${detail}`))
+        },
+        { once: true },
+      )
     })
     socket.addEventListener('message', (event) => client.handleFrame(String(event.data)))
     this.client = client

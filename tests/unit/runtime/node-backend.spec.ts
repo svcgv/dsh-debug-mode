@@ -1,7 +1,7 @@
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { NodeBackendRuntime, parseDebuggerWsUrl } from '../../../src/runtime/node-backend.ts'
 
 describe('node backend helpers', () => {
@@ -17,7 +17,7 @@ describe('NodeBackendRuntime integration', () => {
   let directory: string
   let file: string
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     directory = await mkdtemp(join(tmpdir(), 'dsh-node-'))
     file = join(directory, 'service.js')
     await writeFile(
@@ -42,7 +42,7 @@ describe('NodeBackendRuntime integration', () => {
     )
   })
 
-  afterEach(async () => {
+  afterAll(async () => {
     await rm(directory, { recursive: true, force: true })
   })
 
