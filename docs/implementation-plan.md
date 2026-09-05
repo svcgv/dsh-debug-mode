@@ -120,7 +120,7 @@ interface DebugStartRequest {
 - 后端"停既有服务→调试→恢复"确认闭环。
 - 真实 Flutter/移动端验证与 LAN endpoint 切换的人工复现。
 - 依赖模型调用的浏览器端到端取证（埋点日志/断点命中）复现。
-- macOS/Linux/Windows 跨平台 CI 结果需推送分支后在 GitHub Actions 实际运行。
+- macOS/Linux/Windows 跨平台 CI：已全绿（Quality ubuntu + Platform ubuntu/windows/macos，2026-09-05）。
 
 ## 最终验收
 
