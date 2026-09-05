@@ -1,0 +1,24 @@
+src/runtime/source.ts
+  s_182fd8df93af28::t_1601f61d071dd5 64-67
+tests/integration/frontend-probe.spec.ts
+  s_182fd8df93af28::t_cfe4557c0d7f66 8-11,20,68,71-77,79-84
+  s_182fd8df93af28::t_b0bc414b6ff476 64
+  s_182fd8df93af28::t_225ab3a8eb774c 44-46,51-55,69-70,78,85-86,89,94-96
+  s_182fd8df93af28::t_0d05ce6841527f 1-7,12-19,21-43,47-50,56-63,65-67,87-88,90-93,97-98
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "de7642bdf4be4a559539e2f33aed0fa9a5eb17d6",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
