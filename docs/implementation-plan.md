@@ -118,7 +118,7 @@ interface DebugStartRequest {
 
 - Python/debugpy 真实 attach：已闭环（2026-09-05，debugpy 1.8.21 + `PY_DEBUGPY` 集成测试通过：attach→断点停止→next→evaluate→finish）。
 - 后端“确认后停既有服务→调试→恢复”：已真实闭环（2026-09-05）：首次 debug_start 返回 CONFIRMATION_REQUIRED（pid/命令/重启指引），用户确认后 stopExisting 停服调试，debug_finish 自动重启普通服务并 HTTP 应答正常。
-- 真实 Flutter/移动端验证与 LAN endpoint 切换的人工复现。
+- LAN endpoint 切换真机复现：已闭环（2026-09-05，Android 模拟器独立网络栈 + 宿主机 LAN IP）：loopback 无日志→自动轮转 LAN→设备刷新后 probe 到达。真实 Flutter/移动端工程仍待验证。
 - 依赖模型调用的浏览器端到端取证复现：已闭环（2026-09-05，真实 DeepSeek 模型 + Edge）：后端断点路径与前端浏览器埋点路径均完整走通（见 README 当前状态）。期间修复两处真实缺陷：listener CORS preflight（真实浏览器跨源 POST 被 405 拦截）与 Node debug_start 失败泄漏子进程。
 - macOS/Linux/Windows 跨平台 CI：已全绿（Quality ubuntu + Platform ubuntu/windows/macos，2026-09-05）；期间修复 Node/CDP 子进程测试的 `resumed` 竞态（约 1/8 全套件概率的 -32000 偶发）。
 
