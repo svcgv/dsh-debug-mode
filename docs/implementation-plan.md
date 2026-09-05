@@ -120,7 +120,7 @@ interface DebugStartRequest {
 - 后端"停既有服务→调试→恢复"确认闭环。
 - 真实 Flutter/移动端验证与 LAN endpoint 切换的人工复现。
 - 依赖模型调用的浏览器端到端取证复现仍待用户交互验收；前端埋点本地真实链路已闭环（`tests/integration/frontend-probe.spec.ts`：真实执行插桩脚本→带行号 probe 事件到达 listener→finish 恢复原文件）。
-- macOS/Linux/Windows 跨平台 CI：已全绿（Quality ubuntu + Platform ubuntu/windows/macos，2026-09-05）。
+- macOS/Linux/Windows 跨平台 CI：已全绿（Quality ubuntu + Platform ubuntu/windows/macos，2026-09-05）；期间修复 Node/CDP 子进程测试的 `resumed` 竞态（约 1/8 全套件概率的 -32000 偶发）。
 
 ## 最终验收
 
