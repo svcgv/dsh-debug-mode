@@ -1,0 +1,19 @@
+tests/integration/listener-lan.spec.ts
+  s_182fd8df93af28::t_3f8f0b13fc2b09 1-56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "7d4bc5f155a4c1c2c2f771039cf337b800b19afa",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "unknown"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
