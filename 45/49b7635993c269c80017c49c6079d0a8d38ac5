@@ -1,0 +1,27 @@
+tests/unit/runtime/python-backend.spec.ts
+  s_182fd8df93af28::t_5c64e9101b72bd 3-7,14-34
+src/runtime/python-backend.ts
+  s_182fd8df93af28::t_1dc2032f5582c7 66-85,252,254,268-278,289
+docs/adr/0005-debugpy-listen-handshake.md
+  s_182fd8df93af28::t_7fdb0797758c29 1-24
+docs/implementation-plan.md
+  s_182fd8df93af28::t_7fdb0797758c29 119
+README.md
+  s_182fd8df93af28::t_506f08fd2f540a 27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "4549b7635993c269c80017c49c6079d0a8d38ac5",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
