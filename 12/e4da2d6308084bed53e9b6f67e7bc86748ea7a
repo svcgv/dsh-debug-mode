@@ -1,0 +1,19 @@
+tests/unit/runtime/node-backend.spec.ts
+  s_182fd8df93af28::t_64b7133ae64c94 54-55,57,85-91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "12e4da2d6308084bed53e9b6f67e7bc86748ea7a",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
