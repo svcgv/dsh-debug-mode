@@ -122,7 +122,6 @@ describe('javascript instrumentation', () => {
     })
     const otherRun = removeInstrumentation(result.code, 'run-b')
     expect(otherRun.removed).toBe(0)
-    console.error('INSTRUMENTED>>>\n' + result.code + '\n<<<')
     const ownRun = removeInstrumentation(result.code, 'run-a')
     expect(ownRun.removed).toBe(4)
     expect(() => parseJavaScript(ownRun.code, 'src/checkout.ts')).not.toThrow()

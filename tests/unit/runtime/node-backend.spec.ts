@@ -51,8 +51,10 @@ describe('NodeBackendRuntime integration', () => {
     { timeout: 60_000 },
     async () => {
       const runtime = new NodeBackendRuntime('node-run-1')
+      // Break on res.end, after `value` is initialized, so locals are
+      // inspectable at the first stop without stepping first.
       const started = await runtime.start({
-        targets: [{ path: file, startLine: 5, endLine: 5 }],
+        targets: [{ path: file, startLine: 6, endLine: 6 }],
         runtime: 'backend',
       })
       if (started.kind !== 'ok') throw new Error(`start failed: ${started.message}`)
@@ -73,16 +75,19 @@ describe('NodeBackendRuntime integration', () => {
         if (paused.kind !== 'ok') throw new Error(`wait failed: ${paused.message}`)
         expect(paused.text).toContain('Paused')
 
-        const stepped = await runtime.control('next', { action: 'next', timeoutMs: 10_000 })
-        if (stepped.kind !== 'ok') throw new Error(`step failed: ${stepped.message}`)
-        expect(stepped.text).toContain('Paused')
-
+        // Evaluate on the first stop; stepping past res.end may resume the
+        // service before a second stop exists, so inspect locals while paused.
         const evaluated = await runtime.control('evaluate', {
           action: 'evaluate',
           expression: 'value',
+          timeoutMs: 10_000,
         })
         if (evaluated.kind !== 'ok') throw new Error(`evaluate failed: ${evaluated.message}`)
         expect(evaluated.text).toBe('42')
+
+        const stepped = await runtime.control('next', { action: 'next', timeoutMs: 10_000 })
+        if (stepped.kind !== 'ok') throw new Error(`step failed: ${stepped.message}`)
+        expect(stepped.text).toContain('Paused')
       } finally {
         const finished = await runtime.finish('cancelled')
         if (finished.kind !== 'ok') finishError = new Error(`finish failed: ${finished.message}`)

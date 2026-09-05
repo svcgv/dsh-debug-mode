@@ -13,6 +13,7 @@ export interface CdpSocket {
 }
 
 interface Pending {
+  readonly command: string
   readonly resolve: (value: unknown) => void
   readonly reject: (reason: unknown) => void
   readonly timer: NodeJS.Timeout
@@ -61,7 +62,7 @@ export class CdpClient {
         this.pending.delete(id)
         reject(new Error(`CDP command ${method} timed out`))
       }, 30_000)
-      this.pending.set(id, { resolve, reject, timer })
+      this.pending.set(id, { command: method, resolve, reject, timer })
       this.socket.send(JSON.stringify({ id, method, params }))
     })
   }
@@ -113,7 +114,7 @@ export class CdpClient {
         const rawCode = message.error.code
         const messageText = typeof rawMessage === 'string' ? rawMessage : 'CDP error'
         const code = typeof rawCode === 'number' ? rawCode : -1
-        pending.reject(new CdpError(messageText, code))
+        pending.reject(new CdpError(`${messageText} (${pending.command})`, code))
         return
       }
       pending.resolve(message.result)

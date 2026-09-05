@@ -178,11 +178,15 @@ export class NodeBackendRuntime implements DebugRuntime {
         const expression = request.expression
         if (expression === undefined || expression === '')
           return error('INVALID_TARGETS', 'evaluate requires an expression.')
-        if (this.pause === undefined) return error('NOT_READY', 'evaluate requires a paused frame.')
         const client = this.client
         if (client === undefined) return error('NOT_READY', 'Node debugger is not attached.')
-        const frameId = this.pause.frames[0]?.callFrameId
-        if (frameId === undefined) return error('NOT_READY', 'No evaluable paused frame.')
+        const timeout = Math.max(0, request.timeoutMs ?? 8_000)
+        const frameId = await this.waitForPausedFrame(client, timeout)
+        if (frameId === undefined)
+          return error(
+            'NOT_READY',
+            'No paused frame; reproduce the issue and retry evaluate while the debugger is stopped.',
+          )
         const result = await client.send('Debugger.evaluateOnCallFrame', {
           callFrameId: frameId,
           expression,
@@ -234,6 +238,7 @@ export class NodeBackendRuntime implements DebugRuntime {
     client.onEvent((method, params) => {
       if (method === 'Debugger.scriptParsed') this.recordScript(params)
       if (method === 'Debugger.paused') this.handlePaused(params)
+      if (method === 'Debugger.resumed') this.handleResumed()
     })
     await client.send('Debugger.enable')
     await client.send('Runtime.enable')
@@ -276,6 +281,32 @@ export class NodeBackendRuntime implements DebugRuntime {
     this.pause = state
     this.status = 'paused'
     this.settleAll(undefined, state)
+  }
+
+  /** The debugger left the paused state; drop the stale pause so later
+   * commands wait for a fresh stop instead of acting on a resumed target. */
+  private handleResumed(): void {
+    this.pause = undefined
+    this.status = 'waiting-for-reproduction'
+  }
+
+  /** Resolve the current paused frame, waiting up to the budget for a stop. */
+  private async waitForPausedFrame(
+    client: CdpClient,
+    timeoutMs: number,
+  ): Promise<string | undefined> {
+    const deadline = Date.now() + timeoutMs
+    for (;;) {
+      const frameId = this.pause?.frames[0]?.callFrameId
+      if (typeof frameId === 'string') return frameId
+      const remaining = deadline - Date.now()
+      if (remaining <= 0) return undefined
+      try {
+        await client.waitForEvent('Debugger.paused', Math.min(remaining, 250))
+      } catch {
+        // A stop may land just after a wait window; keep polling until the budget ends.
+      }
+    }
   }
 
   private extractPause(params: unknown): PauseState | undefined {
