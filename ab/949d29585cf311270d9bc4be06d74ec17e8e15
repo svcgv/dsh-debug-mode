@@ -1,0 +1,31 @@
+src/run/tools.ts
+  s_182fd8df93af28::t_093db9a425f8ca 100-108,114-117,173,188-198
+src/run/types.ts
+  s_182fd8df93af28::t_e4c330df1ce08c 18-20,64-72
+src/runtime/endpoints.ts
+  s_182fd8df93af28::t_fe6871a52c5e96 2-7,12-13,50-109
+src/runtime/frontend.ts
+  s_182fd8df93af28::t_7a4b8673d05381 35,72,76-83,100-130,169,171,173,318-327,329
+tests/unit/run/tools.spec.ts
+  s_182fd8df93af28::t_8d8be8d075a486 147-174
+tests/unit/runtime/endpoints.spec.ts
+  s_182fd8df93af28::t_dfbab845395eb8 6,9-13,39-82
+tests/unit/runtime/frontend.spec.ts
+  s_182fd8df93af28::t_191f0a7214b4a0 94-137
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.0",
+  "base_commit_sha": "ab949d29585cf311270d9bc4be06d74ec17e8e15",
+  "prompts": {},
+  "sessions": {
+    "s_182fd8df93af28": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a06d2d-4e31-7c23-827b-26e89a628c77",
+        "model": "unknown"
+      },
+      "human_author": "“svcgv” <hb1230123@hotmail.com>"
+    }
+  }
+}
