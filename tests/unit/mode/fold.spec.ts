@@ -6,6 +6,7 @@ import {
   initDebugUnitState,
   isOffCommand,
   parseDebugIntent,
+  parseDebugProjectionView,
   parseDebugUnitState,
   toErrorMessage,
   viewDebugProjection,
@@ -124,6 +125,26 @@ describe('debug mode fold', () => {
     expect(() =>
       debugStateCodec.parse({ active: true, running: { commandId: 'c', wanted: 'yes' } }),
     ).toThrow(/invalid "running"/)
+  })
+
+  it('parses and validates the wire view independent of the unit state', () => {
+    expect(parseDebugProjectionView({ active: true, pending: false })).toEqual({
+      active: true,
+      pending: false,
+    })
+    expect(parseDebugProjectionView(viewDebugProjection({ active: false, running: null }))).toEqual(
+      { active: false, pending: false },
+    )
+  })
+
+  it('rejects malformed wire views loudly', () => {
+    expect(() => parseDebugProjectionView({ active: true })).toThrow(
+      /boolean "active" and "pending"/,
+    )
+    expect(() => parseDebugProjectionView({ active: true, pending: 1 })).toThrow(
+      /boolean "active" and "pending"/,
+    )
+    expect(() => parseDebugProjectionView(null)).toThrow(/boolean "active" and "pending"/)
   })
 
   it('renders any thrown value as a stable failure line', () => {

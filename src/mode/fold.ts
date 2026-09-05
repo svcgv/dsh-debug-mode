@@ -98,6 +98,14 @@ export function parseDebugUnitState(value: unknown): DebugUnitState {
   throw new Error('debug projection state carries an invalid "running" record')
 }
 
+/** Parse and validate a wire projection view, rejecting malformed rows. */
+export function parseDebugProjectionView(value: unknown): DebugProjection {
+  if (!isRecord(value) || typeof value.active !== 'boolean' || typeof value.pending !== 'boolean') {
+    throw new Error('debug projection view must be an object with boolean "active" and "pending"')
+  }
+  return { active: value.active, pending: value.pending }
+}
+
 /** Codec-shaped state parser accepted by the harness projection registry. */
 export const debugStateCodec = {
   parse(value: unknown): DebugUnitState {

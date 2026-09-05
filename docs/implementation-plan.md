@@ -106,6 +106,22 @@ interface DebugStartRequest {
 - 支持 macOS、Linux、Windows 的进程树结束和服务恢复。
 - 首次断点命中只通知一次，详细数据由工具有界读取。
 
+## 阶段二验证记录（截至 2026-09-05）
+
+已通过（本地真实环境）：
+
+- `pnpm check` 全绿：单元 158+、覆盖率 99%+、集成（含 Node/CDP 真实子进程断点测试）、平台 smoke、`npm pack` 内容校验。
+- 独立 profile（`.dev/dsh-home`）安装当前 tarball 后真实启动 Harness Web；boot 清单包含 `dsh-debug-mode/client.js`。
+- Edge 浏览器验收：页面零控制台报错（修复前为 "Failed to load plugins"，根因与修复见 ADR 0004）；新建会话后 composer 显示"标准/调试"开关，点击往返切换正常，host debug 投影 `{active, running}` 正确持久化（`session_projcache`）。
+
+仍未闭环（如实记录，见 README 已知限制）：
+
+- Python/debugpy 真实 attach 需要 `adapter↔server↔client` 三段桥接验证。
+- 后端"停既有服务→调试→恢复"确认闭环。
+- 真实 Flutter/移动端验证与 LAN endpoint 切换的人工复现。
+- 依赖模型调用的浏览器端到端取证（埋点日志/断点命中）复现。
+- macOS/Linux/Windows 跨平台 CI 结果需推送分支后在 GitHub Actions 实际运行。
+
 ## 最终验收
 
 - 用户能在 Web composer 选择 Debug 并提交问题。

@@ -17,6 +17,7 @@ import {
   debugStateCodec,
   initDebugUnitState,
   parseDebugIntent,
+  parseDebugProjectionView,
   parseDebugUnitState,
   toErrorMessage,
   viewDebugProjection,
@@ -104,7 +105,7 @@ export function buildDebugProjectionDefinition(): {
     wire: {
       viewSchema: {
         parse(value: unknown) {
-          return viewDebugProjection(asUnitState(value))
+          return parseDebugProjectionView(value)
         },
       },
       view: viewDebugProjection,

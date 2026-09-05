@@ -16,18 +16,19 @@ describe('debug projection definition', () => {
     expect(next.running?.wanted).toBe(true)
   })
 
-  it('parses wire view state and exposes the client view', () => {
+  it('validates the wire view schema against the harness view handoff', () => {
     const definition = buildDebugProjectionDefinition()
-    expect(definition.wire.view({ active: true, running: null })).toEqual({
-      active: true,
-      pending: false,
+    const state = { active: true, running: null as { commandId: string; wanted: boolean } | null }
+    const view = definition.wire.view(state)
+    expect(view).toEqual({ active: true, pending: false })
+    // The gateway hands viewSchema.parse the view of the folded state.
+    expect(definition.wire.viewSchema.parse(view)).toEqual({ active: true, pending: false })
+    expect(definition.wire.viewSchema.parse({ active: false, pending: true })).toEqual({
+      active: false,
+      pending: true,
     })
-    expect(
-      definition.wire.viewSchema.parse({
-        active: false,
-        running: { commandId: 'c', wanted: true },
-      }),
-    ).toEqual({ active: false, pending: true })
-    expect(() => definition.wire.viewSchema.parse({ active: 'yes' })).toThrow(/boolean "active"/)
+    expect(() => definition.wire.viewSchema.parse({ active: 'yes' })).toThrow(
+      /boolean "active" and "pending"/,
+    )
   })
 })
