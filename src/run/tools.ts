@@ -106,11 +106,20 @@ export function parseStartArgs(value: unknown): DebugStartRequest {
   ) {
     throw new Error('reproductionScope must be "local", "lan", or "auto"')
   }
+  const traceTransport = value.traceTransport
+  if (
+    traceTransport !== undefined &&
+    traceTransport !== 'local-log' &&
+    traceTransport !== 'listener'
+  ) {
+    throw new Error('traceTransport must be "local-log" or "listener"')
+  }
   return {
     targets: parseTargets(value.targets),
     runtime,
     ...(value.launchId === undefined ? {} : { launchId: asString(value.launchId, 'launchId') }),
     ...(value.stopExisting === undefined ? {} : { stopExisting: value.stopExisting === true }),
+    ...(traceTransport === undefined ? {} : { traceTransport }),
     ...(reproductionScope === undefined ? {} : { reproductionScope }),
     ...(value.lanAddress === undefined
       ? {}
@@ -170,7 +179,7 @@ export function debugToolDefinitions(
     {
       name: 'debug_start',
       description:
-        'Start a debug run for located source ranges. Frontend runs instrument the located statements and open a trace listener; backend runs prepare a debugger launch. Set reproductionScope from the user\'s description: "local" when they reproduce on this machine, "lan" when they reproduce on another device over the LAN (if several LAN addresses exist the first call returns CONFIRMATION_REQUIRED with the candidates — show them and ask the user to choose, then retry with the chosen lanAddress). Omit it when the repro location is unknown (auto keeps loopback-first rotation).',
+        'Start a debug run for located source ranges. Frontend runs use the listener transport by default: probes are collected by the plugin-owned service and saved to the run-owned local JSONL log. Set traceTransport to local-log only when console/terminal-only output is explicitly preferred. Backend runs prepare a debugger launch. For listener transport, set reproductionScope from the user\'s description: "local" for this machine and "lan" for another device (if several LAN addresses exist the first call returns CONFIRMATION_REQUIRED with candidates; show them, ask the user to choose, then retry with lanAddress).',
       parameters: {
         type: 'object',
         properties: {
@@ -185,11 +194,17 @@ export function debugToolDefinitions(
             description:
               'Backend only: set true only after showing the user the running process and restart command from a CONFIRMATION_REQUIRED result and receiving explicit confirmation. Stops the ordinary service and restarts it on debug_finish.',
           },
+          traceTransport: {
+            type: 'string',
+            enum: ['local-log', 'listener'],
+            description:
+              'Frontend evidence transport. listener (default) starts bounded HTTP collection and saves trace.jsonl. local-log is an explicit console/terminal-only opt-out.',
+          },
           reproductionScope: {
             type: 'string',
             enum: ['local', 'lan', 'auto'],
             description:
-              "Frontend: reproduction scope inferred from the user's description. local = this machine (127.0.0.1), lan = another device over the LAN, auto = loopback first with automatic LAN rotation.",
+              "Frontend listener transport: reproduction scope inferred from the user's description. local = this machine (127.0.0.1), lan = another device over the LAN, auto = loopback first with automatic LAN rotation.",
           },
           lanAddress: {
             type: 'string',
@@ -237,7 +252,7 @@ export function debugToolDefinitions(
     {
       name: 'debug_finish',
       description:
-        'Finish the active debug run: remove probes and platform configuration, stop listeners and debug processes, and restore a stopped ordinary service unless told otherwise.',
+        'Finish the active debug run: remove probes, trace runtime files, and platform configuration; stop any listener and debug processes; and restore a stopped ordinary service unless told otherwise.',
       parameters: {
         type: 'object',
         properties: {

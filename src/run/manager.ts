@@ -213,6 +213,9 @@ export class DebugRunManager {
 export function validateStartRequest(request: {
   targets: readonly { path: string; startLine: number; endLine: number }[]
   runtime: string
+  traceTransport?: string
+  reproductionScope?: string
+  lanAddress?: string
 }): DebugRunError | null {
   if (request.targets.length === 0 || request.targets.length > 5) {
     return error('INVALID_TARGETS', 'debug_start requires between 1 and 5 target ranges.', false)
@@ -240,6 +243,40 @@ export function validateStartRequest(request: {
     request.runtime !== 'backend'
   ) {
     return error('INVALID_TARGETS', 'runtime must be "auto", "frontend", or "backend".', false)
+  }
+  if (
+    request.traceTransport !== undefined &&
+    request.traceTransport !== 'local-log' &&
+    request.traceTransport !== 'listener'
+  ) {
+    return error('INVALID_TARGETS', 'traceTransport must be "local-log" or "listener".', false)
+  }
+  if (
+    request.reproductionScope !== undefined &&
+    request.reproductionScope !== 'local' &&
+    request.reproductionScope !== 'lan' &&
+    request.reproductionScope !== 'auto'
+  ) {
+    return error('INVALID_TARGETS', 'reproductionScope must be "local", "lan", or "auto".', false)
+  }
+  if (
+    request.runtime === 'backend' &&
+    (request.traceTransport !== undefined ||
+      request.reproductionScope !== undefined ||
+      request.lanAddress !== undefined)
+  ) {
+    return error(
+      'INVALID_TARGETS',
+      'traceTransport, reproductionScope, and lanAddress are frontend-only options.',
+      false,
+    )
+  }
+  if (request.traceTransport === 'local-log' && request.lanAddress !== undefined) {
+    return error(
+      'INVALID_TARGETS',
+      'lanAddress can only be used with traceTransport "listener".',
+      false,
+    )
   }
   return null
 }

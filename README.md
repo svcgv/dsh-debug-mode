@@ -4,7 +4,9 @@ DeepSeek Harness 的 Debug Mode Bundle，目标是在 Web composer 中提供 Nor
 
 ## 当前状态
 
-阶段一工程规范与质量门禁已完成；阶段二功能已实现主体：模式控制与 Debug/Normal 开关、`/debug` 命令与投影、前端 Listener 与插桩、Node/CDP 与 Python/DAP 后端、进程辅助与清理工具。浏览器验收（2026-09-05，Edge + 本地 Harness Web）已确认：插件 bundle 能正常加载（不再出现 "加载 plugin 失败"），composer 显示 Debug/标准 开关，点击可在标准↔调试间往返切换且投影状态正确持久化、控制台零报错。已完成的真实环境验收（2026-09-05）：① Debug 模式开关/投影在 Edge + 本地 Harness Web 实测；② 模型在 Debug 模式定位 `currentMode` 并遵守 debug policy；③ `debug_control` 工具真实注册可达；④ 后端断点闭环：模型对故意 bug 的 Node 服务 debug_start→断点→wait/evaluate/next/continue→根因诊断→debug_finish 清理；以及“确认后停服”闭环：首次 debug_start 返回 CONFIRMATION_REQUIRED（pid/命令/重启指引），用户确认后 stopExisting:true 停服调试，debug_finish 自动重启普通服务并 HTTP 应答正常；⑤ 前端浏览器埋点闭环：模型对网页工程插桩，Edge 真实点击触发，12 条带行号 probe 事件经 CORS 跨源投递到 listener，模型读取日志定位根因并清理（期间修复 listener CORS preflight 缺陷）。LAN endpoint 真机验证：已闭环（2026-09-05，Android 模拟器作为独立网络栈设备经宿主机 LAN IP 192.168.2.50 访问页面）：设备 loopback 点击无日志 → debug_control wait 自动轮转 runtime 端点为 LAN 优先 → 设备刷新后二次点击，2 条带行号 probe 经 http://192.168.2.50:53638/ingest 到达 listener（CORS preflight 已验证），根因分析后 debug_finish 清理。Endpoint scope：debug_start 现支持 reproductionScope（local/lan/auto），模型按用户复现描述决策——local 只通告 127.0.0.1，lan 通告局域网地址（多个 LAN 地址时返回 CONFIRMATION_REQUIRED 列出候选、用户选定后以 lanAddress 重试），已在真实模型会话验证 local→纯 loopback、lan→纯 192.168.2.50。另待真实 Flutter/移动端。跨平台 CI 已在 GitHub Actions 全绿。
+阶段一工程规范与质量门禁已完成；阶段二功能已实现主体：模式控制与 Debug/Normal 开关、`/debug` 命令与投影、前端 Local Log/Listener 插桩、Node/CDP 与 Python/DAP 后端、进程辅助与清理工具。浏览器验收（2026-09-05，Edge + 本地 Harness Web）已确认：插件 bundle 能正常加载（不再出现 "加载 plugin 失败"），composer 显示 Debug/标准 开关，点击可在标准↔调试间往返切换且投影状态正确持久化、控制台零报错。已完成的真实环境验收（2026-09-05）：① Debug 模式开关/投影在 Edge + 本地 Harness Web 实测；② 模型在 Debug 模式定位 `currentMode` 并遵守 debug policy；③ `debug_control` 工具真实注册可达；④ 后端断点闭环：模型对故意 bug 的 Node 服务 debug_start→断点→wait/evaluate/next/continue→根因诊断→debug_finish 清理；以及“确认后停服”闭环：首次 debug_start 返回 CONFIRMATION_REQUIRED（pid/命令/重启指引），用户确认后 stopExisting:true 停服调试，debug_finish 自动重启普通服务并 HTTP 应答正常；⑤ 前端浏览器埋点闭环：模型对网页工程插桩，Edge 真实点击触发，12 条带行号 probe 事件经 CORS 跨源投递到 listener，模型读取日志定位根因并清理（期间修复 listener CORS preflight 缺陷）。LAN endpoint 真机验证：已闭环（2026-09-05，Android 模拟器作为独立网络栈设备经宿主机 LAN IP 192.168.2.50 访问页面）：设备 loopback 点击无日志 → debug_control wait 自动轮转 runtime 端点为 LAN 优先 → 设备刷新后二次点击，2 条带行号 probe 经 http://192.168.2.50:53638/ingest 到达 listener（CORS preflight 已验证），根因分析后 debug_finish 清理。Endpoint scope：debug_start 现支持 reproductionScope（local/lan/auto），模型按用户复现描述决策——local 只通告 127.0.0.1，lan 通告局域网地址（多个 LAN 地址时返回 CONFIRMATION_REQUIRED 列出候选、用户选定后以 lanAddress 重试），已在真实模型会话验证 local→纯 loopback、lan→纯 192.168.2.50。另待真实 Flutter/移动端。跨平台 CI 已在 GitHub Actions 全绿。
+
+自 2026-09-08 起，前端 `debug_start` 默认采用 `traceTransport: 'listener'`：探针通过插件拥有的服务采集脱敏事件，并将事件保存到当前运行的 `.dsh-debug/<runId>/trace.jsonl`，供 `debug_control` 读取且在 `debug_finish` 后保留。只有明确要求只看 console/terminal 时才使用 `traceTransport: 'local-log'`；该模式不启动服务且不生成日志文件。见 [ADR 0006](docs/adr/0006-listener-first-persistent-log.md)。
 
 - [本地实施计划](docs/implementation-plan.md)
 - [架构规范](docs/architecture.md)
@@ -24,6 +26,7 @@ DeepSeek Harness 的 Debug Mode Bundle，目标是在 Web composer 中提供 Nor
 
 ## 已知限制（阶段二当前状态）
 
+- Listener 默认采集与本地 JSONL 保存已通过单元、集成和覆盖率测试；尚未在真实 Harness Web + Edge 模型会话中完成“探针采集→模型读取→诊断→清理并保留 trace.jsonl”的完整验收。
 - Python/debugpy 后端：真实 attach 已在本机闭环（debugpy 1.8.21）：`--listen` 端口是 adapter 控制通道，需按 `debugpySockets` 事件取非 internal 的 DAP 端口 attach，且 attach 响应在 `configurationDone` 后才返回（见 ADR 0005）。集成测试用 `PY_DEBUGPY=<python-with-debugpy> pnpm test:integration` 运行并已通过。
 - 后端“停掉既有服务→调试→恢复”闭环：当前对同脚本的普通服务采取安全失败提示（不自动停服），恢复闭环未实现。
 - Flutter：本地网络补丁为可回滚纯文本层；未在真实 Flutter 工程跑通。

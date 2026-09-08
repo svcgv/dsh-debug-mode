@@ -1,4 +1,7 @@
 import { createServer, request as httpRequest, type Server } from 'node:http'
+import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { createIngestHandler } from '../../../src/listener/http.ts'
 import { TraceStore } from '../../../src/listener/store.ts'
@@ -19,10 +22,17 @@ function parseBody(text: string): Record<string, unknown> {
   return value
 }
 
+class FailingStore extends TraceStore {
+  override append(): Promise<number | null> {
+    return Promise.reject(new Error('simulated persistence failure'))
+  }
+}
+
 describe('ingest handler', () => {
   let server: Server
   let port: number
   let store: TraceStore
+  let directory: string
   const token = 'secret-token'
 
   beforeEach(async () => {
@@ -39,6 +49,60 @@ describe('ingest handler', () => {
     await new Promise<void>((resolve, reject) =>
       server.close((error) => (error === undefined ? resolve() : reject(error))),
     )
+    if (directory !== undefined) await rm(directory, { recursive: true, force: true })
+  })
+
+  it('persists accepted batches when the store owns a local log file', async () => {
+    directory = await mkdtemp(join(tmpdir(), 'dsh-ingest-'))
+    const path = join(directory, 'trace.jsonl')
+    const persistent = new TraceStore(undefined, path)
+    await persistent.initialize()
+    const persistentServer = createServer(createIngestHandler({ store: persistent, token }))
+    await new Promise<void>((resolve) => persistentServer.listen(0, '127.0.0.1', resolve))
+    const address = persistentServer.address()
+    if (address === null || typeof address === 'string')
+      throw new Error('persistent server did not bind')
+    try {
+      const response = await fetch(`http://127.0.0.1:${address.port}/ingest`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          token,
+          events: [{ kind: 'probe', runId: 'r', ts: 1, line: 3, file: 'app.js' }],
+        }),
+      })
+      expect(response.status).toBe(200)
+      await persistent.close()
+      expect((await readFile(path, 'utf8')).trim()).toContain('"line":3')
+    } finally {
+      await new Promise<void>((resolve, reject) =>
+        persistentServer.close((error) => (error === undefined ? resolve() : reject(error))),
+      )
+    }
+  })
+
+  it('returns a stable failure when the trace store rejects a batch', async () => {
+    const failingServer = createServer(createIngestHandler({ store: new FailingStore(), token }))
+    await new Promise<void>((resolve) => failingServer.listen(0, '127.0.0.1', resolve))
+    const address = failingServer.address()
+    if (address === null || typeof address === 'string')
+      throw new Error('failing server did not bind')
+    try {
+      const response = await fetch(`http://127.0.0.1:${address.port}/ingest`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          token,
+          events: [{ kind: 'probe', runId: 'r', ts: 1 }],
+        }),
+      })
+      expect(response.status).toBe(500)
+      expect(await response.json()).toEqual({ ok: false, error: 'trace-store-failed' })
+    } finally {
+      await new Promise<void>((resolve, reject) =>
+        failingServer.close((error) => (error === undefined ? resolve() : reject(error))),
+      )
+    }
   })
 
   async function post(

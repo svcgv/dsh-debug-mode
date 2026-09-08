@@ -77,6 +77,9 @@ interface DebugStartRequest {
   targets: DebugTarget[]
   runtime: 'auto' | 'frontend' | 'backend'
   launchId?: string
+  traceTransport?: 'local-log' | 'listener'
+  reproductionScope?: 'local' | 'lan' | 'auto'
+  lanAddress?: string
 }
 ```
 
@@ -93,8 +96,9 @@ interface DebugStartRequest {
 - 支持 JS、TS、JSX、TSX、Vue、Svelte 和 Flutter/Dart。
 - 对已定位函数或行区间中的可执行语句插入 probe；不改写整个项目。
 - 采集控制流和安全变量快照，限制深度、数量、事件大小和速率，并脱敏敏感字段。
-- Listener 绑定本地网卡，以随机令牌鉴权，先广告 loopback endpoint。
-- Runtime 发送 heartbeat；无 heartbeat 才切换为局域网 IP，有 heartbeat 无 probe 则判定路径未命中。
+- 默认使用 Listener：通过探针采集 heartbeat 和 probe，绑定本地网卡，以随机令牌鉴权，并将脱敏事件有界保存到 run-owned JSONL。
+- Listener 先广告 loopback endpoint；无 heartbeat 才切换为局域网 IP，有 heartbeat 无 probe 则判定路径未命中。
+- 显式选择 `local-log` 时仅打印到 console/terminal，不启动 Listener，也不生成日志文件。
 - Flutter 临时网络配置带运行标记，可安全移除。
 - 文件漂移时只移除可证明属于当前运行的节点，不整文件回滚。
 
@@ -121,11 +125,12 @@ interface DebugStartRequest {
 - LAN endpoint 切换真机复现：已闭环（2026-09-05，Android 模拟器独立网络栈 + 宿主机 LAN IP）：loopback 无日志→自动轮转 LAN→设备刷新后 probe 到达。真实 Flutter/移动端工程仍待验证。
 - 依赖模型调用的浏览器端到端取证复现：已闭环（2026-09-05，真实 DeepSeek 模型 + Edge）：后端断点路径与前端浏览器埋点路径均完整走通（见 README 当前状态）。期间修复两处真实缺陷：listener CORS preflight（真实浏览器跨源 POST 被 405 拦截）与 Node debug_start 失败泄漏子进程。
 - macOS/Linux/Windows 跨平台 CI：已全绿（Quality ubuntu + Platform ubuntu/windows/macos，2026-09-05）；期间修复 Node/CDP 子进程测试的 `resumed` 竞态（约 1/8 全套件概率的 -32000 偶发）。
+- Listener 默认采集与本地 JSONL 保存（2026-09-08）：默认 transport 是 Listener，事件在成功写入 `.dsh-debug/<runId>/trace.jsonl` 后才对 `debug_control` 可读；显式 Local Log 保留为无服务、无文件的 opt-out。
 
 ## 最终验收
 
 - 用户能在 Web composer 选择 Debug 并提交问题。
-- Agent 能定位最小代码范围并获取日志或断点证据。
+- Agent 能定位最小代码范围，并通过默认 Listener 读取探针证据；证据同时保存在本地 JSONL，后端使用断点证据。
 - 前端无 heartbeat 时能正确切换 LAN endpoint，不把路径未命中误判为网络失败。
 - 后端只有在确认后停止已有服务，调试结束后恢复普通服务。
 - 诊断输出包含根因、运行时证据和置信度；修复需用户选择并可复验。

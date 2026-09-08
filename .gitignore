@@ -3,6 +3,7 @@ lib/
 coverage/
 .artifacts/
 .dev/
+.dsh-debug/
 *.tgz
 *.log
 .DS_Store

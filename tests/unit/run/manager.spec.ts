@@ -141,6 +141,35 @@ describe('DebugRunManager', () => {
       runtime: 'bogus',
     })
     expect(bogus).toMatchObject({ kind: 'error', code: 'INVALID_TARGETS' })
+    expect(
+      validateStartRequest({
+        targets: [{ path: 'x', startLine: 1, endLine: 1 }],
+        runtime: 'frontend',
+        traceTransport: 'file',
+      }),
+    ).toMatchObject({ kind: 'error', code: 'INVALID_TARGETS' })
+    expect(
+      validateStartRequest({
+        targets: [{ path: 'x', startLine: 1, endLine: 1 }],
+        runtime: 'frontend',
+        reproductionScope: 'wan',
+      }),
+    ).toMatchObject({ kind: 'error', code: 'INVALID_TARGETS' })
+    expect(
+      await manager.start('s6', {
+        targets: [{ path: 'x', startLine: 1, endLine: 1 }],
+        runtime: 'backend',
+        traceTransport: 'listener',
+      }),
+    ).toMatchObject({ kind: 'error', code: 'INVALID_TARGETS' })
+    expect(
+      await manager.start('s7', {
+        targets: [{ path: 'x', startLine: 1, endLine: 1 }],
+        runtime: 'frontend',
+        traceTransport: 'local-log',
+        lanAddress: '192.168.1.7',
+      }),
+    ).toMatchObject({ kind: 'error', code: 'INVALID_TARGETS' })
   })
 
   it('clears the session when runtime start fails', async () => {

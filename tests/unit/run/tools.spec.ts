@@ -148,6 +148,13 @@ describe('debug tools', () => {
       parseStartArgs({
         targets: [{ path: 'a', startLine: 1, endLine: 1 }],
         runtime: 'frontend',
+        traceTransport: 'local-log',
+      }),
+    ).toMatchObject({ traceTransport: 'local-log' })
+    expect(
+      parseStartArgs({
+        targets: [{ path: 'a', startLine: 1, endLine: 1 }],
+        runtime: 'frontend',
         reproductionScope: 'lan',
       }),
     ).toMatchObject({ reproductionScope: 'lan' })
@@ -158,6 +165,13 @@ describe('debug tools', () => {
         lanAddress: '192.168.1.7',
       }),
     ).toMatchObject({ lanAddress: '192.168.1.7' })
+    expect(() =>
+      parseStartArgs({
+        targets: [{ path: 'a', startLine: 1, endLine: 1 }],
+        runtime: 'frontend',
+        traceTransport: 'file',
+      }),
+    ).toThrow(/traceTransport must be/)
     expect(() =>
       parseStartArgs({
         targets: [{ path: 'a', startLine: 1, endLine: 1 }],

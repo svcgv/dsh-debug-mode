@@ -1,8 +1,9 @@
 /**
- * Frontend debug runtime adapter: starts the authenticated trace listener,
- * instruments the located JS/TS files, ships a project-local trace runtime,
- * and exposes bounded evidence reads plus endpoint rotation. Everything the
- * adapter changes is owned by the run id so finish can remove it safely.
+ * Frontend debug runtime adapter: starts the authenticated trace listener by
+ * default, instruments located JS/TS files, persists collected events to a
+ * run-owned local JSONL log, and retains local-only output as an explicit
+ * opt-out. Everything the adapter changes is owned by the run id so finish can
+ * remove or report it safely.
  *
  * @module dsh-debug-mode/runtime/frontend
  */
@@ -18,7 +19,12 @@ import {
   removeInstrumentation,
 } from '../instrumentation/js.ts'
 import { createIngestHandler } from '../listener/http.ts'
-import { DEFAULT_STORE_LIMITS, TraceStore, type TraceCursor } from '../listener/store.ts'
+import {
+  DEFAULT_STORE_LIMITS,
+  TraceStore,
+  TraceStoreError,
+  type TraceCursor,
+} from '../listener/store.ts'
 import type {
   DebugRuntime,
   RuntimeControlOk,
@@ -31,6 +37,7 @@ import type {
   DebugRunError,
   DebugStartRequest,
   DebugTarget,
+  FrontendTraceTransport,
 } from '../run/types.ts'
 import { resolveEndpointPlan } from './endpoints.ts'
 import { createTraceRuntimeSource } from './source.ts'
@@ -49,6 +56,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
+function isNodeError(value: unknown): value is NodeJS.ErrnoException {
+  return value instanceof Error && 'code' in value
+}
+
 function parseTarget(value: unknown): DebugTarget | undefined {
   if (!isRecord(value) || typeof value.path !== 'string') return undefined
   const startLine = value.startLine
@@ -57,17 +68,24 @@ function parseTarget(value: unknown): DebugTarget | undefined {
   return { path: value.path, startLine, endLine }
 }
 
+function selectTraceTransport(request: DebugStartRequest): FrontendTraceTransport {
+  return request.traceTransport ?? 'listener'
+}
+
 /** One live frontend run owned by the manager. */
 export class FrontendRuntime implements DebugRuntime {
   readonly kind = 'frontend' as const
   private readonly runId: string
-  private readonly store = new TraceStore(DEFAULT_STORE_LIMITS)
-  private readonly token = randomBytes(24).toString('base64url')
   private readonly files: ManagedFile[] = []
+  private store: TraceStore | undefined
+  private traceTransport: FrontendTraceTransport = 'listener'
+  private readonly token = randomBytes(24).toString('base64url')
   private server: Server | undefined
   private port = 0
   private runtimeDirectory = ''
+  private runtimeDirectoryOwned = false
   private runtimePath = ''
+  private traceLogPath = ''
   private endpoints: readonly string[] = []
   private endpointNotice = ''
   private status: 'waiting-for-reproduction' | 'paused' | 'diagnosing' = 'waiting-for-reproduction'
@@ -96,52 +114,68 @@ export class FrontendRuntime implements DebugRuntime {
       resolvedTargets.push(target)
     }
     try {
-      await this.startListener()
-      const views = this.collectInterfaceViews()
-      const plan = resolveEndpointPlan(
-        views,
-        this.port,
-        request.reproductionScope ?? 'auto',
-        request.lanAddress,
-      )
-      if (plan.kind === 'lan-selection-required') {
-        await this.closeListener()
-        return error(
-          'CONFIRMATION_REQUIRED',
-          `The reproduction target is another device, and this machine has ${plan.candidates.length} LAN addresses: ${plan.candidates.join(', ')}. ` +
-            'Show the user the candidates, ask which one the device can reach, and call debug_start again with "lanAddress": "<chosen>".',
-        )
-      }
-      if (plan.kind === 'no-lan') {
-        await this.closeListener()
-        return error(
-          'RUNTIME_UNAVAILABLE',
-          'The reproduction target is another device, but this machine has no non-loopback IPv4 address to advertise.',
-        )
-      }
-      if (plan.kind === 'invalid-lan') {
-        await this.closeListener()
+      this.traceTransport = selectTraceTransport(request)
+      if (this.traceTransport === 'local-log' && request.lanAddress !== undefined) {
         return error(
           'INVALID_TARGETS',
-          `lanAddress ${plan.requested} is not a current LAN address of this machine (${plan.candidates.join(', ') || 'none'}).`,
+          'lanAddress can only be used with traceTransport "listener".',
         )
       }
-      this.endpoints = plan.endpoints
-      this.endpointNotice = plan.notice
       const firstDirectory = dirname(resolve(resolvedTargets[0]?.path ?? '.'))
       this.runtimeDirectory = join(firstDirectory, '.dsh-debug', this.runId)
       this.runtimePath = join(this.runtimeDirectory, 'trace-runtime.js')
-      await mkdir(this.runtimeDirectory, { recursive: true })
-      await writeFile(
-        this.runtimePath,
-        createTraceRuntimeSource({
-          runId: this.runId,
-          token: this.token,
-          endpoints: this.endpoints,
-          projectPath: resolvedTargets[0]?.path ?? '',
-        }),
-        'utf8',
-      )
+      this.traceLogPath = join(this.runtimeDirectory, 'trace.jsonl')
+      await mkdir(dirname(this.runtimeDirectory), { recursive: true })
+      try {
+        await mkdir(this.runtimeDirectory)
+        this.runtimeDirectoryOwned = true
+      } catch (cause) {
+        if (isNodeError(cause) && cause.code === 'EEXIST') {
+          throw new TraceStoreError(
+            'TRACE_LOG_EXISTS',
+            `The run directory ${this.runtimeDirectory} already exists; refusing to overwrite it. Use a new run id or recover the existing run explicitly.`,
+            { cause },
+          )
+        }
+        throw cause
+      }
+      if (this.traceTransport === 'listener') {
+        this.store = new TraceStore(DEFAULT_STORE_LIMITS, this.traceLogPath)
+        await this.store.initialize()
+        await this.startListener()
+        const views = this.collectInterfaceViews()
+        const plan = resolveEndpointPlan(
+          views,
+          this.port,
+          request.reproductionScope ?? 'auto',
+          request.lanAddress,
+        )
+        if (plan.kind === 'lan-selection-required') {
+          await this.rollback()
+          return error(
+            'CONFIRMATION_REQUIRED',
+            `The reproduction target is another device, and this machine has ${plan.candidates.length} LAN addresses: ${plan.candidates.join(', ')}. ` +
+              'Show the user the candidates, ask which one the device can reach, and call debug_start again with "lanAddress": "<chosen>".',
+          )
+        }
+        if (plan.kind === 'no-lan') {
+          await this.rollback()
+          return error(
+            'RUNTIME_UNAVAILABLE',
+            'The reproduction target is another device, but this machine has no non-loopback IPv4 address to advertise.',
+          )
+        }
+        if (plan.kind === 'invalid-lan') {
+          await this.rollback()
+          return error(
+            'INVALID_TARGETS',
+            `lanAddress ${plan.requested} is not a current LAN address of this machine (${plan.candidates.join(', ') || 'none'}).`,
+          )
+        }
+        this.endpoints = plan.endpoints
+        this.endpointNotice = plan.notice
+      }
+      await writeFile(this.runtimePath, this.runtimeSource(resolvedTargets[0]?.path ?? ''), 'utf8')
       const sources = await Promise.all(
         resolvedTargets.map(async (target) => ({
           target,
@@ -166,14 +200,16 @@ export class FrontendRuntime implements DebugRuntime {
       }
       await Promise.all(pendingWrites)
       const classic = this.files.some((file) => file.classic)
-      const location = this.endpointNotice === '' ? '' : `${this.endpointNotice} `
-      const notice = classic
-        ? `${location}Instrumented ${resolvedTargets.length} file(s) and started the trace listener at ${this.endpoints[0]}. ` +
-          'The project has classic scripts, so load the trace runtime file before the app runs, then reproduce the issue.'
-        : `${location}Instrumented ${resolvedTargets.length} file(s) and started the trace listener at ${this.endpoints[0]}. Reproduce the issue now.`
+      const notice = this.startNotice(resolvedTargets.length, classic)
       return { kind: 'ok', kindOfRun: 'frontend', status: 'waiting-for-reproduction', notice }
     } catch (cause) {
       await this.rollback()
+      if (cause instanceof TraceStoreError) {
+        return error(
+          cause.code === 'TRACE_LOG_EXISTS' ? 'TRACE_LOG_EXISTS' : 'TRACE_PERSISTENCE_FAILED',
+          `Frontend trace persistence failed (${cause.code}): ${cause.message}`,
+        )
+      }
       const message = cause instanceof Error ? cause.message : String(cause)
       return error('INVALID_TARGETS', `Frontend instrumentation failed: ${message}`)
     }
@@ -183,6 +219,7 @@ export class FrontendRuntime implements DebugRuntime {
     action: string,
     request: DebugControlRequest,
   ): Promise<RuntimeControlOk | DebugRunError> {
+    if (this.traceTransport === 'local-log') return this.controlLocalLog(action)
     switch (action) {
       case 'status':
         return this.statusResult()
@@ -190,7 +227,7 @@ export class FrontendRuntime implements DebugRuntime {
         const cursor = this.parseCursor(request.cursor)
         const target = cursor + 1
         const timeout = Math.max(0, request.timeoutMs ?? 15_000)
-        const ready = await this.store.waitFor(target, timeout)
+        const ready = await this.requireStore().waitFor(target, timeout)
         if (ready) {
           return {
             kind: 'ok',
@@ -202,7 +239,7 @@ export class FrontendRuntime implements DebugRuntime {
         // A runtime that loaded sends a heartbeat immediately. No events at
         // all means the loopback endpoint was unreachable, so rotate to the
         // LAN candidate automatically and ask for a reload.
-        if (this.store.count === 0 && !this.endpointsRotated) {
+        if (this.requireStore().count === 0 && !this.endpointsRotated) {
           await this.rotateRuntimeEndpoints()
           return {
             kind: 'ok',
@@ -220,7 +257,7 @@ export class FrontendRuntime implements DebugRuntime {
       }
       case 'read': {
         const cursor = this.parseCursor(request.cursor)
-        const page = this.store.read(cursor, 200)
+        const page = this.requireStore().read(cursor, 200)
         const lines = page.events.map((entry) => JSON.stringify(entry)).join('\n')
         return {
           kind: 'ok',
@@ -234,16 +271,7 @@ export class FrontendRuntime implements DebugRuntime {
         const firstEndpoint = this.endpoints[0]
         const rotated =
           firstEndpoint === undefined ? [] : [...this.endpoints.slice(1), firstEndpoint]
-        await writeFile(
-          this.runtimePath,
-          createTraceRuntimeSource({
-            runId: this.runId,
-            token: this.token,
-            endpoints: rotated,
-            projectPath: '',
-          }),
-          'utf8',
-        )
+        await writeFile(this.runtimePath, this.runtimeSource('', rotated), 'utf8')
         return {
           kind: 'ok',
           status: this.status,
@@ -275,20 +303,87 @@ export class FrontendRuntime implements DebugRuntime {
       }
     })
     await Promise.all(cleanups)
-    if (this.runtimeDirectory !== '') {
+    if (this.runtimePath !== '') {
+      try {
+        await rm(this.runtimePath, { force: true })
+      } catch {
+        couldNotRestore.push(this.runtimePath)
+      }
+    }
+    await this.closeListener()
+    await this.closeStore()
+    if (this.traceTransport === 'local-log' && this.runtimeDirectoryOwned) {
       try {
         await rm(this.runtimeDirectory, { recursive: true, force: true })
       } catch {
         couldNotRestore.push(this.runtimeDirectory)
       }
     }
-    await this.closeListener()
+    const transportSummary =
+      this.traceTransport === 'listener'
+        ? ` and stopped the trace listener. Collected events are saved to ${this.traceLogPath}.`
+        : '; no trace listener was started.'
     return {
       kind: 'ok',
       status: 'finished',
       restored,
       couldNotRestore,
-      summary: `Finished ${outcome}: removed ${restored.length} instrumented file(s) and stopped the trace listener.`,
+      summary: `Finished ${outcome}: removed ${restored.length} instrumented file(s)${transportSummary}`,
+    }
+  }
+
+  private startNotice(targetCount: number, classic: boolean): string {
+    if (this.traceTransport === 'local-log') {
+      const load = classic
+        ? ' The project has classic scripts, so load the trace runtime file before the app runs.'
+        : ''
+      return (
+        `Instrumented ${targetCount} file(s) for local log output; no collector service was started.${load} ` +
+        `Reproduce the issue and inspect the application console or terminal for lines prefixed [dsh-debug:${this.runId}]. ` +
+        'Paste those lines into the session if they are not already visible to the agent.'
+      )
+    }
+    const location = this.endpointNotice === '' ? '' : `${this.endpointNotice} `
+    return classic
+      ? `${location}Instrumented ${targetCount} file(s) and started the trace listener at ${this.endpoints[0]}. ` +
+          `Collected events are saved to ${this.traceLogPath}. The project has classic scripts, so load the trace runtime file before the app runs, then reproduce the issue.`
+      : `${location}Instrumented ${targetCount} file(s) and started the trace listener at ${this.endpoints[0]}. Collected events are saved to ${this.traceLogPath}. Reproduce the issue now.`
+  }
+
+  private controlLocalLog(action: string): RuntimeControlOk | DebugRunError {
+    const prefix = `[dsh-debug:${this.runId}]`
+    switch (action) {
+      case 'status':
+        return {
+          kind: 'ok',
+          status: this.status,
+          text: `Frontend run ${this.runId}: local-log transport active, no listener service running. Evidence prefix: ${prefix}.`,
+        }
+      case 'wait':
+        return {
+          kind: 'ok',
+          status: this.status,
+          text: `Local-log transport does not collect events. Reproduce the issue, then inspect the application console or terminal for ${prefix} lines.`,
+        }
+      case 'read':
+        return {
+          kind: 'ok',
+          status: this.status,
+          text: `Evidence remains in the application console or terminal. Read or paste the bounded ${prefix} lines; Debug Mode did not start a collector service.`,
+        }
+      case 'reinstrument':
+        return {
+          kind: 'ok',
+          status: this.status,
+          text: 'Reinstrumentation applies on the next debug_start; no target changed since launch.',
+        }
+      case 'switch_endpoint':
+        return error(
+          'UNSUPPORTED_ACTION',
+          'Local-log transport has no network endpoint. Start a new frontend run with traceTransport "listener" to collect events automatically.',
+        )
+      default:
+        return error('UNSUPPORTED_ACTION', `Frontend runs do not support action "${action}".`)
     }
   }
 
@@ -299,13 +394,15 @@ export class FrontendRuntime implements DebugRuntime {
     return {
       kind: 'ok',
       status: this.status,
-      cursor: String(this.store.count - 1),
-      text: `Frontend run ${this.runId}: ${this.store.count} events (${this.store.droppedCount} dropped), listener ${endpoint ?? 'stopped'}.`,
+      cursor: String(this.requireStore().count - 1),
+      text: `Frontend run ${this.runId}: ${this.requireStore().count} events (${this.requireStore().droppedCount} dropped), listener ${endpoint ?? 'stopped'}, saved to ${this.traceLogPath}.`,
     }
   }
 
   private async startListener(): Promise<void> {
-    const server = createServer(createIngestHandler({ store: this.store, token: this.token }))
+    const server = createServer(
+      createIngestHandler({ store: this.requireStore(), token: this.token }),
+    )
     await new Promise<void>((resolvePromise, reject) => {
       server.once('error', reject)
       server.listen(0, '0.0.0.0', () => resolvePromise())
@@ -337,22 +434,40 @@ export class FrontendRuntime implements DebugRuntime {
     this.endpointsRotated = true
     const firstEndpoint = this.endpoints[0]
     const rotated = firstEndpoint === undefined ? [] : [...this.endpoints.slice(1), firstEndpoint]
-    await writeFile(
-      this.runtimePath,
-      createTraceRuntimeSource({
+    await writeFile(this.runtimePath, this.runtimeSource('', rotated), 'utf8')
+  }
+
+  private runtimeSource(projectPath: string, endpoints = this.endpoints): string {
+    if (this.traceTransport === 'local-log') {
+      return createTraceRuntimeSource({
+        transport: 'local-log',
         runId: this.runId,
-        token: this.token,
-        endpoints: rotated,
-        projectPath: '',
-      }),
-      'utf8',
-    )
+        projectPath,
+      })
+    }
+    return createTraceRuntimeSource({
+      transport: 'listener',
+      runId: this.runId,
+      token: this.token,
+      endpoints,
+      projectPath,
+    })
   }
 
   private parseCursor(value: string | undefined): TraceCursor {
     if (value === undefined) return -1
     const parsed = Number(value)
     return Number.isSafeInteger(parsed) ? parsed : -1
+  }
+
+  private requireStore(): TraceStore {
+    if (this.store === undefined) {
+      throw new TraceStoreError(
+        'TRACE_STORE_NOT_READY',
+        'The frontend listener store is not available for this run.',
+      )
+    }
+    return this.store
   }
 
   private async closeListener(): Promise<void> {
@@ -366,7 +481,16 @@ export class FrontendRuntime implements DebugRuntime {
     })
   }
 
+  private async closeStore(): Promise<void> {
+    const store = this.store
+    if (store === undefined) return
+    await store.close()
+    this.store = undefined
+  }
+
   private async rollback(): Promise<void> {
+    await this.closeListener()
+    await this.closeStore()
     const writes = this.files.map(async (file) => {
       try {
         await writeFile(file.path, file.original, 'utf8')
@@ -375,13 +499,13 @@ export class FrontendRuntime implements DebugRuntime {
       }
     })
     await Promise.all(writes)
-    if (this.runtimeDirectory !== '') {
+    if (this.runtimeDirectoryOwned) {
       try {
         await rm(this.runtimeDirectory, { recursive: true, force: true })
+        this.runtimeDirectoryOwned = false
       } catch {
         // best-effort
       }
     }
-    await this.closeListener()
   }
 }

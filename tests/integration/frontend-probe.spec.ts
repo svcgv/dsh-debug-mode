@@ -21,7 +21,7 @@ const SCRIPT = [
   '',
 ].join('\n')
 
-describe('FrontendRuntime probe round trip (real listener)', () => {
+describe('FrontendRuntime probe round trip (default listener)', () => {
   let directory: string
   let file: string
   let runtime: FrontendRuntime
@@ -48,7 +48,7 @@ describe('FrontendRuntime probe round trip (real listener)', () => {
     if (directory !== undefined) await rm(directory, { recursive: true, force: true })
   })
 
-  it('executes the instrumented script and delivers line-level probe logs', async () => {
+  it('collects probe events and persists them to the local JSONL log', async () => {
     const runtimeSource = await readFile(
       join(directory, '.dsh-debug/run-e2e/trace-runtime.js'),
       'utf8',
@@ -60,12 +60,25 @@ describe('FrontendRuntime probe round trip (real listener)', () => {
     vm.runInThisContext(runtimeSource, { filename: 'trace-runtime.js' })
     vm.runInThisContext(instrumented, { filename: 'app.js' })
 
-    const waited = await runtime.control('wait', { action: 'wait', timeoutMs: 8_000 })
-    if (waited.kind !== 'ok') throw new Error(`wait failed: ${waited.message}`)
+    const heartbeatWait = await runtime.control('wait', { action: 'wait', timeoutMs: 8_000 })
+    if (heartbeatWait.kind !== 'ok') throw new Error(`wait failed: ${heartbeatWait.message}`)
+    const heartbeatRead = await runtime.control('read', { action: 'read' })
+    if (heartbeatRead.kind !== 'ok') throw new Error('heartbeat read failed')
+    const heartbeatCursor = heartbeatRead.cursor
+    if (heartbeatCursor === undefined) throw new Error('heartbeat cursor missing')
 
-    const read = await runtime.control('read', { action: 'read' })
-    if (read.kind !== 'ok') throw new Error('read failed')
-    const rawEvents = read.text
+    const probeWait = await runtime.control('wait', {
+      action: 'wait',
+      cursor: heartbeatCursor,
+      timeoutMs: 8_000,
+    })
+    if (probeWait.kind !== 'ok') throw new Error(`probe wait failed: ${probeWait.message}`)
+    const probeRead = await runtime.control('read', {
+      action: 'read',
+      cursor: heartbeatCursor,
+    })
+    if (probeRead.kind !== 'ok') throw new Error('probe read failed')
+    const rawEvents = `${heartbeatRead.text}\n${probeRead.text}`
       .split('\n')
       .filter(Boolean)
       .map((line) => JSON.parse(line) as unknown)
@@ -84,9 +97,23 @@ describe('FrontendRuntime probe round trip (real listener)', () => {
           event.line >= 1,
       ),
     ).toBe(true)
+
+    const persisted = (await readFile(join(directory, '.dsh-debug/run-e2e/trace.jsonl'), 'utf8'))
+      .trim()
+      .split('\n')
+      .map((line) => JSON.parse(line) as unknown)
+    expect(
+      persisted.some(
+        (event) =>
+          isRecord(event) &&
+          event.kind === 'probe' &&
+          event.runId === 'run-e2e' &&
+          typeof event.seq === 'number',
+      ),
+    ).toBe(true)
   })
 
-  it('restores the original source and removes the run directory on finish', async () => {
+  it('restores source, removes runtime code, and retains the local trace log on finish', async () => {
     const finished = await runtime.finish('diagnosed')
     if (finished.kind !== 'ok') throw new Error('finish failed')
     expect(finished.restored).toContain(file)
@@ -94,5 +121,8 @@ describe('FrontendRuntime probe round trip (real listener)', () => {
     await expect(
       readFile(join(directory, '.dsh-debug/run-e2e/trace-runtime.js'), 'utf8'),
     ).rejects.toThrow()
+    await expect(
+      readFile(join(directory, '.dsh-debug/run-e2e/trace.jsonl'), 'utf8'),
+    ).resolves.toContain('"kind":"probe"')
   })
 })

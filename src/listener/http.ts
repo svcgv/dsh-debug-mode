@@ -92,6 +92,10 @@ export function createIngestHandler(
       chunks.push(chunk)
     })
     req.on('end', () => {
+      void handleEnd()
+    })
+
+    async function handleEnd(): Promise<void> {
       if (rejected) {
         send(res, 413, { ok: false, error: 'payload-too-large' })
         return
@@ -120,20 +124,21 @@ export function createIngestHandler(
         send(res, 400, { ok: false, error: 'invalid-batch' })
         return
       }
-      let accepted = 0
-      let dropped = 0
-      for (const entry of parsed.events) {
-        const normalized = normalizeEvent(entry)
-        if (normalized === undefined) {
-          dropped += 1
-          continue
-        }
-        const seq = options.store.append(normalized)
-        if (seq === null) dropped += 1
-        else accepted += 1
+      const normalizedEvents = parsed.events
+        .map((entry) => normalizeEvent(entry))
+        .filter((entry): entry is Omit<TraceEvent, 'seq'> => entry !== undefined)
+      const malformed = parsed.events.length - normalizedEvents.length
+      try {
+        const results = await Promise.all(
+          normalizedEvents.map((event) => options.store.append(event)),
+        )
+        const accepted = results.filter((seq) => seq !== null).length
+        const dropped = malformed + results.length - accepted
+        send(res, 200, { ok: true, accepted, dropped })
+      } catch {
+        send(res, 500, { ok: false, error: 'trace-store-failed' })
       }
-      send(res, 200, { ok: true, accepted, dropped })
-    })
+    }
   }
 }
 

@@ -18,6 +18,9 @@ export type DebugRuntimeMode = 'auto' | 'frontend' | 'backend'
 /** Where the user will reproduce, inferred from their description. */
 export type DebugReproductionScope = 'local' | 'lan' | 'auto'
 
+/** How frontend probes expose evidence. */
+export type FrontendTraceTransport = 'local-log' | 'listener'
+
 /** Resolved runtime kind after classification. */
 export type DebugRunKind = 'frontend' | 'backend'
 
@@ -62,10 +65,16 @@ export interface DebugStartRequest {
    */
   readonly stopExisting?: boolean
   /**
-   * Frontend: reproduction scope inferred from the user's description. local
-   * reports to loopback only; lan reports to a LAN address (the user picks
-   * when several exist, via lanAddress on the confirmed retry); auto keeps
-   * loopback-first with automatic rotation.
+   * Frontend only: listener sends probe evidence to the plugin-owned HTTP
+   * listener and saves it to the run-owned local JSONL log. local-log is an
+   * explicit opt-out for console/terminal-only output. Defaults to listener.
+   */
+  readonly traceTransport?: FrontendTraceTransport
+  /**
+   * Frontend listener transport: reproduction scope inferred from the user's
+   * description. local reports to loopback only; lan reports to a LAN address
+   * (the user picks when several exist, via lanAddress on the confirmed
+   * retry); auto keeps loopback-first with automatic rotation.
    */
   readonly reproductionScope?: DebugReproductionScope
   /** Frontend: the LAN address the user chose after a selection prompt. */
@@ -91,6 +100,8 @@ export type DebugRunErrorCode =
   | 'UNSUPPORTED_ACTION'
   | 'UNSUPPORTED_TARGET'
   | 'NOT_READY'
+  | 'TRACE_PERSISTENCE_FAILED'
+  | 'TRACE_LOG_EXISTS'
   | 'FINISH_IN_PROGRESS'
 
 /** One structured failure returned by the run seam. */

@@ -15,14 +15,17 @@
 
 ## 日志安全
 
+- 默认使用 Listener：事件经过脱敏、大小和速率限制后保存到 run-owned JSONL；显式 Local Log 才写入应用输出。
 - 默认采集控制流和有限局部变量，不遍历全局对象。
-- 在持久化和返回模型之前执行同一套脱敏。
+- 在写入 Local Log、持久化或返回模型之前执行同一套脱敏。
 - 默认敏感键模式覆盖 secret、token、password、authorization、cookie 和 key，允许部署方增加规则但不能关闭基础规则。
 - 限制对象深度、属性数量、字符串长度、事件大小、每 probe 命中数、全局速率和磁盘总量。
 - 遇到循环、getter 抛错或不可序列化值时记录占位事实，不执行危险 getter 或自定义序列化代码。
+- Listener 日志默认保留在当前运行的 `.dsh-debug/<runId>/trace.jsonl`，不进入 Git；结束时关闭写入但不自动删除证据。Local Log 可能被应用自身的日志系统保留，提示用户只分享带当前 run ID 前缀的必要记录。
 
 ## Listener 安全
 
+- Listener 是默认路径；只有明确要求只看 console/terminal 时才使用 Local Log opt-out。
 - 端口由 OS 分配，运行 token 使用密码学安全随机数。
 - Token 不写入普通日志，不通过 query 列表或 UI 历史重复显示。
 - Listener 只接受预期方法和 content type，执行 body、连接、速率和队列限制。

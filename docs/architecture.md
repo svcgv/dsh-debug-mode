@@ -11,10 +11,12 @@ Mode UI ──commands/projections──> DebugModeController
                                       │
                                       v
                                DebugRunManager
-                               /       |       \
-                    SourceAdapter  TraceStore  DebuggerAdapter
-                                      |              |
-                                 TraceListener   ProcessAdapter
+                               /       |        \
+                    SourceAdapter  TraceTransport  DebuggerAdapter
+                                     /      \             |
+                                LocalLog  TraceListener  ProcessAdapter
+                                              |
+                                          TraceStore
 ```
 
 ## 外部 seam
@@ -56,16 +58,25 @@ interface SourceAdapter {
 
 统一进程发现和生命周期接口。macOS、Linux、Windows 分别实现端口到 PID 映射、命令和 cwd 读取、进程树优雅结束、强制结束和恢复启动。
 
+### TraceTransport
+
+前端探针的证据出口有两个真实变体，但差异封装在 `FrontendRuntime` 内：
+
+- `listener`：默认。向带随机 token 的 HTTP Listener 发送事件，由 `TraceStore` 脱敏、限流并追加保存到 run-owned JSONL，再提供游标读取。
+- `local-log`：显式 opt-out。向应用已有 console 或 terminal 写入带 run ID 前缀的有界单行记录，不启动 Listener，也不生成 trace.jsonl。
+
+调用方只通过 `debug_start.traceTransport` 选择，不直接管理端口、令牌或日志格式。
+
 ## 数据流
 
 ### 前端
 
 1. Agent 用 Harness 现有搜索/LSP/文件工具定位代码。
-2. `debug_start` 选择 `SourceAdapter`，写入运行 manifest 后应用探针。
-3. Trace runtime 向带随机 token 的 Listener 发送 heartbeat 和批量事件。
-4. `TraceStore` 脱敏、限流、持久化并生成游标。
-5. 首条有效 probe 只通知 agent 一次；后续通过 `debug_control` 读取。
-6. `debug_finish` 移除探针、临时 runtime 和平台配置。
+2. `debug_start` 默认选择 `listener`，在写入运行资料后启动 Listener、创建空的 run-owned `trace.jsonl`，再应用探针。
+3. Listener runtime 向带随机 token 的 Listener 发送 heartbeat 和批量事件；事件成功追加到 JSONL 后才进入 `TraceStore` 的可读游标。
+4. `debug_control` 从内存中的有界窗口读取证据；本地 `trace.jsonl` 保留完整的有界运行记录，供复查和崩溃恢复。
+5. 只有显式选择 `local-log` 时，runtime 才将 heartbeat 和 probe 打印到应用原有输出，并跳过 Listener 和 JSONL。
+6. `debug_finish` 移除探针、runtime 文件、平台配置，停止 Listener 并关闭 TraceStore；默认保留 `trace.jsonl`。
 
 ### 后端
 
@@ -78,12 +89,12 @@ interface SourceAdapter {
 
 ## 持久化与恢复
 
-运行资料位于 `$DSH_HOME/debug-mode/runs/<session>/<run>/`，不进入 Git：
+通用运行资料位于 `$DSH_HOME/debug-mode/runs/<session>/<run>/`，不进入 Git；当前前端 Listener 的诊断证据落在项目内的 `.dsh-debug/<runId>/`，同样被 Git 忽略，以便模型和维护者直接读取：
 
 - manifest
 - 原始文件备份
 - 原始与应用后哈希
-- 事件 JSONL
+- 事件 JSONL（默认 Listener transport 的本地证据，当前路径为项目 `.dsh-debug/<runId>/trace.jsonl`）
 - launch spec
 - 清理结果
 

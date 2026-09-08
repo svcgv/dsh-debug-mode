@@ -4,11 +4,11 @@
 
 ### 单元测试
 
-覆盖纯状态转换、解析、序列化、脱敏、限流、源码变换和清理决策。通过模块公开接口测试，不读取私有字段。
+覆盖纯状态转换、解析、序列化、脱敏、限流、源码变换和清理决策。前端运行必须验证 Listener 是默认 transport、默认路径包含本地 JSONL、事件只有持久化成功后才可读、写入失败会显式失败，以及显式 Local Log opt-out 仍可用。通过模块公开接口测试，不读取私有字段。
 
 ### 集成测试
 
-组合真实文件系统、Listener、协议 client 和受控子进程。每个测试创建独立临时目录、端口和进程组，并在 `finally` 中清理。
+组合真实文件系统、应用输出、Listener、协议 client 和受控子进程。默认 Listener round trip 必须验证端口、探针、JSONL 和清理；Local Log round trip 只在显式 opt-out 时验证且不绑定端口。每个测试创建独立临时目录、端口和进程组，并在 `finally` 中清理。
 
 ### 平台测试
 
@@ -59,6 +59,7 @@ macOS、Linux、Windows runner 分别验证：
 - 写后语法验证失败。
 - 清理时用户修改了邻近代码。
 - Listener 收到错误 token、畸形 JSON、超限 body 或事件洪泛。
+- Trace JSONL 创建失败、重复 run 目录、追加失败、写入队列超限；Local Log 不可用、序列化失败、单行超限，以及误对 Local Log 执行 endpoint 切换。
 - 无 heartbeat 与有 heartbeat 无 probe 的分支。
 - 用户拒绝结束现有服务。
 - 进程无法优雅结束、无法强制结束或无法恢复。

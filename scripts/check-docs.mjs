@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url'
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const required = [
   'AGENTS.md',
+  'CONTEXT.md',
   'CONTRIBUTING.md',
   'README.md',
   'docs/implementation-plan.md',
@@ -14,6 +15,7 @@ const required = [
   'docs/security-and-safety.md',
   'docs/adr/0001-standalone-bundle.md',
   'docs/adr/0002-debug-runtime-model.md',
+  'docs/adr/0006-listener-first-persistent-log.md',
 ]
 
 async function markdownFiles(directory) {
